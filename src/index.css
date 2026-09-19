@@ -1,0 +1,116 @@
+@import 'tailwindcss';
+
+@theme {
+  /* Materiais do pátio: asfalto, concreto, demarcação viária, sinalização. */
+  --color-asfalto: #1b1e24;
+  --color-asfalto-2: #272b33;
+  --color-asfalto-3: #3a3f4a;
+  --color-concreto: #edede8;
+  --color-concreto-2: #f7f7f4;
+  --color-brita: #6b7280;
+  --color-brita-2: #9ca3af;
+  --color-linha: #d6d6cf;
+
+  --color-demarcacao: #f2c230;
+  --color-demarcacao-escura: #a8811a;
+  --color-sinal: #d92d20;
+  --color-sinal-fraca: #fdeceb;
+  --color-liberado: #1f8a5b;
+  --color-liberado-fraca: #e7f4ed;
+  --color-ressalva: #b45309;
+  --color-ressalva-fraca: #fdf3e3;
+  --color-placa-banda: #2c4c8c;
+
+  --font-display: 'Archivo', system-ui, sans-serif;
+  --font-sans: 'Public Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --radius-chip: 5px;
+}
+
+@layer base {
+  * {
+    scrollbar-color: var(--color-brita-2) transparent;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-concreto);
+    color: var(--color-asfalto);
+    font-family: var(--font-sans);
+    font-synthesis-weight: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+
+  button {
+    font: inherit;
+    cursor: pointer;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-demarcacao);
+    outline-offset: 2px;
+  }
+}
+
+@utility rotulo {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Faixa diagonal de demarcação: usada só em superfícies de alerta. */
+@utility zebra-alerta {
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--color-demarcacao) 0 10px,
+    var(--color-asfalto) 10px 20px
+  );
+}
+
+@keyframes entrada-alerta {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+    background-color: var(--color-demarcacao);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulso-sinal {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@utility anim-alerta {
+  animation: entrada-alerta 520ms ease-out;
+}
+
+@utility anim-pulso {
+  animation: pulso-sinal 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

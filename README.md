@@ -1,0 +1,67 @@
+# Controle de Pátio
+
+Sistema web de fiscalização de pátio: substitui a folha impressa de conferência de
+drivers por uma lista que atualiza em tempo real, com bloqueio de driver adulterado,
+alerta imediato para o analista e histórico do dia inteiro.
+
+**Protótipo de demonstração** — dados fictícios, sem backend e sem senha.
+
+## Rodar
+
+```bash
+npm install
+npm run dev              # http://localhost:5173
+npm run dev -- --host    # abrir no celular, na mesma rede
+```
+
+Na tela de entrada, escolha um perfil:
+
+| Perfil | O que faz |
+|---|---|
+| **Fiscal de pátio** | Confere drivers na chegada e reporta divergência (celular) |
+| **Analista** | Sobe a escala, resolve bloqueios, acompanha painel e relatórios |
+| **Líder** | Acompanha painel e relatórios, sem editar escala |
+
+## Como apresentar
+
+Abra **duas janelas** do navegador lado a lado, na mesma máquina: uma como
+**analista**, outra como **fiscal** (reduza essa para largura de celular). As duas
+compartilham os dados e se atualizam sozinhas — é assim que a diretoria vê a
+divergência subir na hora.
+
+## Roteiro de demonstração
+
+1. Entre como **analista** → **Escala** → *Baixar modelo*, depois suba o mesmo
+   arquivo: a pré-visualização recusa a linha inválida antes de gravar qualquer coisa.
+2. Abra outra janela como **fiscal** → confira um driver com **Tudo certo**.
+3. Volte ao **Painel**: os KPIs e o gráfico já refletem o check-in.
+4. Como fiscal, abra outro driver → **Reportar divergência** → digite uma placa
+   trocando um caractere. As duas placas aparecem lado a lado com a diferença marcada.
+5. No painel do analista o alerta entra no feed em segundos, e o driver consta como
+   bloqueado.
+6. **Alertas** → tente liberar sem justificativa (é recusado), depois libere com
+   justificativa.
+7. **Escala** → *Driver que entrou no meio do turno* → adicione um driver: ele
+   aparece na lista do fiscal marcado como **Novo**, sem reimprimir nada.
+8. **Auditoria** → tudo o que você acabou de fazer está registrado, com autor e horário.
+9. **Relatórios** → 14 dias de histórico, gráficos e exportação em CSV.
+
+No painel do analista, na barra lateral, há **Simulador** (liga check-ins fictícios a
+cada 6 segundos, para a tela se mover sozinha durante a apresentação) e **Reiniciar
+demonstração** (volta tudo ao estado inicial, para apresentar de novo do zero).
+
+## Verificar antes de apresentar
+
+```bash
+npm test                              # regra de negócio
+npm run build                         # tipos + build
+npx playwright install chromium       # uma vez por máquina
+npm run dev -- --port 5199            # em outro terminal
+npm run verify:demo                   # percorre o roteiro acima num navegador real
+```
+
+## Stack
+
+React 19 · TypeScript · Vite · Tailwind v4 · React Router · Recharts · Vitest
+
+Arquitetura, convenções e o que entra na fase 2 estão em [CLAUDE.md](CLAUDE.md).
