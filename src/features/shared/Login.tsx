@@ -59,7 +59,8 @@ export function Login() {
               Protótipo de demonstração.
             </strong>{' '}
             Os dados são fictícios e não há senha — o login serve só para escolher o perfil.
-            Autenticação real entra na fase 2.
+            Os dados ficam neste navegador: abra outra janela aqui mesmo para ver fiscal e
+            analista conversando ao vivo. Autenticação real e servidor entram na fase 2.
           </p>
         </aside>
       </div>

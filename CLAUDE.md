@@ -1,7 +1,7 @@
 # CLAUDE.md
 
-Sistema web de fiscalização de pátio (Shopee/SPX). Substitui a folha de papel que o
-fiscal usa hoje para conferir driver, veículo e placa na chegada.
+Sistema web de fiscalização de pátio de uma transportadora. Substitui a folha de papel
+que o fiscal usa hoje para conferir driver, veículo e placa na chegada.
 
 **Estado atual: protótipo de demonstração.** Tudo roda contra um mock em memória,
 sem backend, sem autenticação real. A fase 2 é Supabase (Postgres + Auth + RLS +

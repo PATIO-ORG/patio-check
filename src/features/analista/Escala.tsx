@@ -70,7 +70,7 @@ function Importador() {
     <Cartao>
       <TituloSecao
         acao={
-          <a href="/escala-exemplo.csv" download className="rotulo text-brita underline hover:text-asfalto">
+          <a href={`${import.meta.env.BASE_URL}escala-exemplo.csv`} download className="rotulo text-brita underline hover:text-asfalto">
             Baixar modelo
           </a>
         }

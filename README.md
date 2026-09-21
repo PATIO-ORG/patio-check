@@ -6,6 +6,10 @@ alerta imediato para o analista e histórico do dia inteiro.
 
 **Protótipo de demonstração** — dados fictícios, sem backend e sem senha.
 
+### → [Abrir a demonstração](https://viniciusln1.github.io/patio-check/)
+
+Funciona no navegador e no celular, sem instalar nada.
+
 ## Rodar
 
 ```bash
@@ -28,6 +32,12 @@ Abra **duas janelas** do navegador lado a lado, na mesma máquina: uma como
 **analista**, outra como **fiscal** (reduza essa para largura de celular). As duas
 compartilham os dados e se atualizam sozinhas — é assim que a diretoria vê a
 divergência subir na hora.
+
+> **Os dados ficam no navegador de cada um.** Quem abre o link ganha a própria cópia
+> da demonstração: ninguém vê o que o outro fez, e ninguém estraga a demo de
+> ninguém. Por isso o momento "o fiscal reporta, o analista vê na hora" se apresenta
+> em duas janelas do **mesmo computador** — não em dois celulares. Sincronizar
+> dispositivos diferentes é o servidor da fase 2.
 
 ## Roteiro de demonstração
 
@@ -59,6 +69,26 @@ npx playwright install chromium       # uma vez por máquina
 npm run dev -- --port 5199            # em outro terminal
 npm run verify:demo                   # percorre o roteiro acima num navegador real
 ```
+
+## Como contribuir
+
+O trabalho está dividido em fatias independentes. Cada dev pega uma:
+
+| Fatia | Onde mora |
+|---|---|
+| Fiscal | `src/features/fiscal/` |
+| Painel | `src/features/analista/Dashboard.tsx` |
+| Escala e auditoria | `src/features/analista/Escala.tsx`, `Auditoria.tsx` |
+| Alertas e relatórios | `src/features/analista/Alertas.tsx`, `Relatorios.tsx` |
+
+1. Crie uma branch com o nome da fatia: `git checkout -b fiscal/busca-por-placa`.
+2. Faça PRs pequenos. O CI roda testes e build em todo PR e precisa estar verde para o
+   merge.
+3. **`src/domain/` e `src/data/DataSource.ts` são contratos compartilhados** por todas
+   as fatias. Precisou mexer ali? Avise o grupo antes, e abra um PR só para isso.
+4. Regra de negócio nova ganha teste antes da implementação.
+
+Cada merge na `master` republica a demonstração sozinho em 1 ou 2 minutos.
 
 ## Stack
 
