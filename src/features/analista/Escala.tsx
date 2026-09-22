@@ -70,7 +70,7 @@ function Importador() {
     <Cartao>
       <TituloSecao
         acao={
-          <a href={`${import.meta.env.BASE_URL}escala-exemplo.csv`} download className="rotulo text-brita underline hover:text-asfalto">
+          <a href={`${import.meta.env.BASE_URL}escala-exemplo.csv`} download className="rotulo text-brita underline hover:text-tinta">
             Baixar modelo
           </a>
         }
@@ -79,7 +79,7 @@ function Importador() {
       </TituloSecao>
 
       <div className="p-5">
-        <label className="flex cursor-pointer items-center justify-between gap-4 rounded-chip border-2 border-dashed border-brita-2 px-4 py-5 transition-colors hover:border-asfalto">
+        <label className="flex cursor-pointer items-center justify-between gap-4 rounded-chip border-2 border-dashed border-brita-2 px-4 py-5 transition-colors hover:border-tinta">
           <span>
             <span className="block font-display text-[15px] font-bold">
               Escolher arquivo CSV da escala
@@ -88,7 +88,7 @@ function Importador() {
               Colunas: ID, nome, veículo, cor, placa, rota, turno. Nada é gravado antes da conferência.
             </span>
           </span>
-          <span className="rotulo shrink-0 rounded-chip bg-asfalto px-3 py-2 text-demarcacao">
+          <span className="rotulo shrink-0 rounded-chip bg-chip px-3 py-2 text-sobre-chip">
             Selecionar
           </span>
           <input
@@ -139,7 +139,7 @@ function Importador() {
             {previa.validas.length > 0 && (
               <div className="mt-3 max-h-64 overflow-auto rounded-chip border border-linha">
                 <table className="w-full text-left text-[13px]">
-                  <thead className="sticky top-0 bg-concreto-2">
+                  <thead className="sticky top-0 bg-superficie-2">
                     <tr className="rotulo text-brita">
                       <th className="px-3 py-2">ID</th>
                       <th className="px-3 py-2">Nome</th>
@@ -305,7 +305,7 @@ function Tabela({ itens }: { itens: ItemDetalhado[] }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[820px] text-left text-sm">
-        <thead className="border-b border-linha bg-concreto-2">
+        <thead className="border-b border-linha bg-superficie-2">
           <tr className="rotulo text-brita">
             <th className="px-4 py-2.5">Rota</th>
             <th className="px-4 py-2.5">Driver</th>
@@ -318,7 +318,7 @@ function Tabela({ itens }: { itens: ItemDetalhado[] }) {
         </thead>
         <tbody className="divide-y divide-linha">
           {itens.map(({ item, motorista }) => (
-            <tr key={item.id} className={item.avulso ? 'bg-demarcacao/8' : undefined}>
+            <tr key={item.id} className={item.avulso ? 'bg-destaque/8' : undefined}>
               <td className="px-4 py-2.5">
                 <Rota valor={item.rota} />
               </td>
@@ -326,7 +326,7 @@ function Tabela({ itens }: { itens: ItemDetalhado[] }) {
                 <span className="font-semibold">{motorista.nome}</span>
                 <span className="ml-2 font-mono text-xs text-brita">{motorista.driverId}</span>
                 {item.avulso && (
-                  <span className="rotulo ml-2 rounded-full bg-demarcacao px-1.5 py-0.5 text-asfalto">
+                  <span className="rotulo ml-2 rounded-full bg-destaque px-1.5 py-0.5 text-sobre-destaque">
                     Novo
                   </span>
                 )}

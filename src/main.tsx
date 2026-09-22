@@ -5,6 +5,7 @@ import './index.css'
 import { App } from './App'
 import { DataProvider } from './data/provider'
 import { SessaoProvider } from './auth/sessao'
+import { SeletorPaleta } from './features/shared/SeletorPaleta'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -13,6 +14,7 @@ createRoot(document.getElementById('root')!).render(
         <BrowserRouter basename={import.meta.env.BASE_URL}>
           <App />
         </BrowserRouter>
+        <SeletorPaleta />
       </SessaoProvider>
     </DataProvider>
   </StrictMode>,

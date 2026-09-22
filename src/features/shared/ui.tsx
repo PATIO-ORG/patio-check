@@ -7,7 +7,7 @@ export const CORES_STATUS: Record<
 > = {
   aguardando: {
     barra: 'bg-brita-2',
-    fundo: 'bg-concreto-2',
+    fundo: 'bg-superficie-2',
     texto: 'text-brita',
     rotulo: 'Aguardando',
   },
@@ -56,7 +56,7 @@ export function StatusPill({ status }: { status: StatusItem }) {
 
 export function Rota({ valor }: { valor: string }) {
   return (
-    <span className="inline-block rounded-chip bg-asfalto px-2 py-1 font-mono text-[13px] font-bold tracking-[0.08em] text-demarcacao">
+    <span className="inline-block rounded-chip bg-chip px-2 py-1 font-mono text-[13px] font-bold tracking-[0.08em] text-sobre-chip">
       {valor}
     </span>
   )
@@ -70,10 +70,10 @@ export function Botao({
   variante?: 'primario' | 'perigo' | 'neutro' | 'fantasma'
 }) {
   const estilos = {
-    primario: 'bg-asfalto text-concreto hover:bg-asfalto-2 disabled:bg-brita-2',
+    primario: 'bg-acao text-sobre-acao hover:bg-acao-2 disabled:bg-brita-2',
     perigo: 'bg-sinal text-white hover:brightness-110 disabled:bg-brita-2',
-    neutro: 'bg-white text-asfalto border border-linha hover:border-asfalto',
-    fantasma: 'text-brita hover:text-asfalto',
+    neutro: 'bg-white text-tinta border border-linha hover:border-tinta',
+    fantasma: 'text-brita hover:text-tinta',
   }[variante]
 
   return (
@@ -112,7 +112,7 @@ export function TituloSecao({ children, acao }: { children: ReactNode; acao?: Re
 export function Vazio({ titulo, acao }: { titulo: string; acao?: string }) {
   return (
     <div className="px-5 py-12 text-center">
-      <p className="font-display text-base font-semibold text-asfalto">{titulo}</p>
+      <p className="font-display text-base font-semibold text-tinta">{titulo}</p>
       {acao && <p className="mt-1.5 text-sm text-brita">{acao}</p>}
     </div>
   )

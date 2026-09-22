@@ -30,7 +30,7 @@ export function Placa({
   return (
     <span
       className={`inline-flex flex-col overflow-hidden rounded-chip border-2 bg-white leading-none ${t.caixa} ${
-        alerta ? 'border-sinal' : 'border-asfalto'
+        alerta ? 'border-sinal' : 'border-placa-tinta'
       }`}
       aria-label={`Placa ${valor}`}
     >
@@ -39,7 +39,7 @@ export function Placa({
         aria-hidden="true"
       />
       <span
-        className={`w-full text-center font-mono font-bold tracking-[0.08em] text-asfalto ${t.texto}`}
+        className={`w-full text-center font-mono font-bold tracking-[0.08em] text-placa-tinta ${t.texto}`}
       >
         {chars.map((c, i) => {
           const divergente = diferenteDe !== undefined && diferenteDe[i] !== c

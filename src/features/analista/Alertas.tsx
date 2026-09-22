@@ -115,7 +115,7 @@ function CartaoAlerta({ alerta }: { alerta: AlertaAberto }) {
       )}
 
       {pode ? (
-        <div className="border-t border-linha bg-concreto-2 p-5">
+        <div className="border-t border-linha bg-superficie-2 p-5">
           <label className="rotulo block text-brita" htmlFor={`just-${alerta.irregularidadeId}`}>
             Justificativa da decisão
           </label>
@@ -147,7 +147,7 @@ function CartaoAlerta({ alerta }: { alerta: AlertaAberto }) {
           </div>
         </div>
       ) : (
-        <p className="border-t border-linha bg-concreto-2 px-5 py-3 text-sm text-brita">
+        <p className="border-t border-linha bg-superficie-2 px-5 py-3 text-sm text-brita">
           Somente analistas resolvem bloqueio. Você acompanha o andamento.
         </p>
       )}

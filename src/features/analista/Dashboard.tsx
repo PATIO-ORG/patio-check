@@ -168,7 +168,7 @@ function Kpi({
   destaque?: 'atencao' | 'sinal'
 }) {
   const cor =
-    destaque === 'sinal' ? 'text-sinal' : destaque === 'atencao' ? 'text-demarcacao-escura' : ''
+    destaque === 'sinal' ? 'text-sinal' : destaque === 'atencao' ? 'text-destaque-texto' : ''
   return (
     <div>
       <dt className="rotulo text-brita">{rotulo}</dt>
@@ -186,7 +186,7 @@ function FeedAlertas({
     <Cartao className="flex max-h-[calc(100dvh-7rem)] flex-col overflow-hidden xl:sticky xl:top-5">
       <TituloSecao
         acao={
-          <Link to="/alertas" className="rotulo text-brita underline hover:text-asfalto">
+          <Link to="/alertas" className="rotulo text-brita underline hover:text-tinta">
             Resolver
           </Link>
         }
