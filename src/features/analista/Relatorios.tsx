@@ -47,7 +47,7 @@ export function Relatorios() {
               onClick={() => setDias(p)}
               aria-pressed={dias === p}
               className={`rotulo rounded-chip px-3 py-2 transition-colors ${
-                dias === p ? 'bg-chip text-sobre-chip' : 'bg-white text-brita ring-1 ring-linha'
+                dias === p ? 'bg-asfalto text-demarcacao' : 'bg-white text-brita ring-1 ring-linha'
               }`}
             >
               {p} dias
@@ -148,7 +148,7 @@ export function Relatorios() {
         <TituloSecao>Detalhamento</TituloSecao>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="border-b border-linha bg-superficie-2">
+            <thead className="border-b border-linha bg-concreto-2">
               <tr className="rotulo text-brita">
                 <th className="px-4 py-2.5">Data</th>
                 <th className="px-4 py-2.5 text-right">Escalados</th>

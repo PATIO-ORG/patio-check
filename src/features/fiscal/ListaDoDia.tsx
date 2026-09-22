@@ -48,14 +48,14 @@ export function ListaDoDia() {
 
   return (
     <>
-      <div className="sticky top-[92px] z-10 -mx-4 bg-fundo px-4 pt-4 pb-3">
+      <div className="sticky top-[92px] z-10 -mx-4 bg-concreto px-4 pt-4 pb-3">
         <input
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
           inputMode="search"
           placeholder="Buscar por placa, ID, nome ou rota"
           aria-label="Buscar driver"
-          className="w-full rounded-chip border-2 border-tinta bg-white px-4 py-3.5 font-mono text-base tracking-wide placeholder:font-sans placeholder:tracking-normal placeholder:text-brita-2"
+          className="w-full rounded-chip border-2 border-asfalto bg-white px-4 py-3.5 font-mono text-base tracking-wide placeholder:font-sans placeholder:tracking-normal placeholder:text-brita-2"
         />
 
         <div className="mt-2.5 flex gap-1.5 overflow-x-auto pb-1">
@@ -66,7 +66,7 @@ export function ListaDoDia() {
               aria-pressed={filtro === f.chave}
               className={`rotulo shrink-0 rounded-full px-3 py-2 transition-colors ${
                 filtro === f.chave
-                  ? 'bg-chip text-sobre-chip'
+                  ? 'bg-asfalto text-demarcacao'
                   : 'bg-white text-brita ring-1 ring-linha'
               }`}
             >
@@ -101,7 +101,7 @@ function CartaoDriver({ detalhe }: { detalhe: ItemDetalhado }) {
   return (
     <Link
       to={`/patio/${item.id}`}
-      className="flex overflow-hidden rounded-lg border border-linha bg-white transition-colors hover:border-tinta"
+      className="flex overflow-hidden rounded-lg border border-linha bg-white transition-colors hover:border-asfalto"
     >
       <span className={`w-1.5 shrink-0 ${cor.barra}`} aria-hidden="true" />
       <div className="flex min-w-0 flex-1 items-center gap-3 p-3">
@@ -109,7 +109,7 @@ function CartaoDriver({ detalhe }: { detalhe: ItemDetalhado }) {
           <div className="flex items-center gap-2">
             <Rota valor={item.rota} />
             {item.avulso && (
-              <span className="rotulo rounded-full bg-destaque px-2 py-0.5 text-sobre-destaque">
+              <span className="rotulo rounded-full bg-demarcacao px-2 py-0.5 text-asfalto">
                 Novo
               </span>
             )}

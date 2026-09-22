@@ -46,7 +46,7 @@ export function DetalheDriver() {
 
   return (
     <div className="pb-40">
-      <Link to="/patio" className="rotulo mt-4 inline-block text-brita hover:text-tinta">
+      <Link to="/patio" className="rotulo mt-4 inline-block text-brita hover:text-asfalto">
         ← Lista do dia
       </Link>
 
@@ -66,7 +66,7 @@ export function DetalheDriver() {
               <Rota valor={item.rota} />
               <span className="rotulo text-brita">{ROTULO_TURNO[item.turno]}</span>
               {item.avulso && (
-                <span className="rotulo rounded-full bg-destaque px-2 py-0.5 text-sobre-destaque">
+                <span className="rotulo rounded-full bg-demarcacao px-2 py-0.5 text-asfalto">
                   Novo
                 </span>
               )}

@@ -71,41 +71,24 @@ compartilhados por todas as telas.
 
 ## Design
 
-**Tokens por papel, não por cor.** Em `src/index.css`, sob `@theme` (Tailwind v4,
-configuração em CSS; não existe `tailwind.config.js`), cada token diz *para que* serve:
-`tinta`, `fundo`, `superficie-2`, `barra`/`sobre-barra`/`destaque-barra` (topo do
-fiscal, lateral do analista, tela de entrada), `destaque`/`sobre-destaque`/
-`destaque-texto` (acento da marca), `chip`/`sobre-chip` (rota, filtro ativo, rótulo de
-seção), `acao`/`sobre-acao` (botão principal). **Nenhum componente usa hex nem nome de
-cor.** Mudar a identidade é trocar valores no CSS, e nenhuma tela muda. Cor nova
-entra como papel novo, nunca como `bg-[#...]`.
-
-**Paleta em avaliação.** A identidade está migrando para a marca (laranja). Há três
-paletas, A (asfalto + laranja, a padrão), B (marketplace) e C (navy + laranja), em
-blocos `[data-paleta]` no CSS. O seletor (`src/features/shared/SeletorPaleta.tsx`,
-aba na borda esquerda) troca entre elas no site publicado. É andaime: quando a
-escolha for feita, a escolhida vira o `@theme` e o seletor e os blocos saem. Todo par
-texto/fundo das três passa de 4,5:1.
-
-**Status têm significado fixo e são iguais em qualquer paleta**, sempre com rótulo
-escrito, nunca só pela cor:
-- `liberado`: verde. `sinal` (bloqueado/irregular): **vinho**. `ressalva`: **índigo**.
-- O laranja da marca **nunca** é status. O vermelho antigo era indistinguível dele
-  (ΔE 6,7), e qualquer tom quente para ressalva colidia com o laranja ou com o vinho.
-  Não reintroduza vermelho nem âmbar como status.
-- Nos gráficos (`src/features/analista/graficos.tsx`) o verde das barras é mais claro
-  que o token `liberado`: o verde escuro de texto cola no vinho para daltônicos. O par
-  do gráfico foi validado (ΔE deutan 9,8).
+Identidade ancorada nos materiais do pátio, com tokens em `src/index.css` sob
+`@theme` (Tailwind v4, configuração em CSS — não existe `tailwind.config.js`).
+Paleta: `asfalto`/`concreto` (superfícies), `demarcacao` (amarelo viário, o único
+acento), `sinal` (vermelho de sinalização), `liberado`, `ressalva`. Fontes: Archivo
+(display), Public Sans (corpo), JetBrains Mono (placas, IDs, rotas, horários),
+carregadas por `<link>` no `index.html`.
 
 **Elemento-assinatura:** a placa aparece sempre renderizada como placa Mercosul
 (`src/features/shared/Placa.tsx`), nunca como texto solto. Em uma divergência,
-`PlacaComparada` põe as duas lado a lado e destaca só os caracteres que não batem. A
-placa é objeto do mundo real: preta, branca e com a faixa azul em qualquer paleta
-(`placa-tinta`, `placa-banda`).
+`PlacaComparada` põe as duas lado a lado e destaca em vermelho só os caracteres que
+não batem — é o que o fiscal precisa enxergar de relance. Não substitua por texto.
 
-Fontes: Archivo (display), Public Sans (corpo), JetBrains Mono (placas, IDs, rotas,
-horários), carregadas por `<link>` no `index.html`. Sem logo nem nome da marca na
-interface: só a cor.
+Verde e vermelho nos gráficos são cores de **estado** (conforme / irregular), com
+significado fixo em todo o sistema; o par foi validado para daltonismo e sempre vem
+com legenda ou rótulo, nunca só pela cor. Não reaproveite essas cores como paleta
+categórica.
+
+Tema único e claro, de propósito: o fiscal opera no sol.
 
 ## Testes
 

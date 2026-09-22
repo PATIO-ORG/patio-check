@@ -5,10 +5,10 @@ import { USUARIOS } from '../../data/mock/seed'
 import { Cartao, TituloSecao, Vazio, dataHora } from '../shared/ui'
 
 const ROTULO_ACAO: Record<AcaoAuditavel, { texto: string; cor: string }> = {
-  'escala.importada': { texto: 'Importou escala', cor: 'bg-fundo text-tinta' },
-  'escala.item_adicionado': { texto: 'Adicionou driver', cor: 'bg-destaque text-sobre-destaque' },
-  'escala.item_editado': { texto: 'Editou driver', cor: 'bg-fundo text-tinta' },
-  'escala.item_removido': { texto: 'Removeu driver', cor: 'bg-fundo text-tinta' },
+  'escala.importada': { texto: 'Importou escala', cor: 'bg-concreto text-asfalto' },
+  'escala.item_adicionado': { texto: 'Adicionou driver', cor: 'bg-demarcacao text-asfalto' },
+  'escala.item_editado': { texto: 'Editou driver', cor: 'bg-concreto text-asfalto' },
+  'escala.item_removido': { texto: 'Removeu driver', cor: 'bg-concreto text-asfalto' },
   'checkin.registrado': { texto: 'Conferiu driver', cor: 'bg-liberado-fraca text-liberado' },
   'irregularidade.reportada': { texto: 'Reportou divergência', cor: 'bg-sinal-fraca text-sinal' },
   'bloqueio.liberado': { texto: 'Liberou bloqueio', cor: 'bg-ressalva-fraca text-ressalva' },

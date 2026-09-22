@@ -10,10 +10,6 @@ alerta imediato para o analista e histórico do dia inteiro.
 
 Funciona no navegador e no celular, sem instalar nada.
 
-> **Paleta em avaliação.** Na borda esquerda da tela há uma aba **PALETA**: ela troca
-> entre as três opções de cores na hora, em qualquer tela. A escolha fica salva no seu
-> navegador.
-
 ## Rodar
 
 ```bash

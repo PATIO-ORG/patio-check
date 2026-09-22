@@ -73,7 +73,7 @@ export function ReportarDivergencia() {
 
   return (
     <div className="pb-36">
-      <Link to={`/patio/${item.id}`} className="rotulo mt-4 inline-block text-brita hover:text-tinta">
+      <Link to={`/patio/${item.id}`} className="rotulo mt-4 inline-block text-brita hover:text-asfalto">
         ← {motorista.nome}
       </Link>
 
@@ -85,8 +85,8 @@ export function ReportarDivergencia() {
       </p>
 
       {/* Placa é o caso mais comum no pátio, então ganha a tela inteira primeiro. */}
-      <section className="mt-4 overflow-hidden rounded-lg border-2 border-tinta bg-white">
-        <h2 className="rotulo bg-chip px-4 py-2.5 text-sobre-chip">Placa</h2>
+      <section className="mt-4 overflow-hidden rounded-lg border-2 border-asfalto bg-white">
+        <h2 className="rotulo bg-asfalto px-4 py-2.5 text-demarcacao">Placa</h2>
         <div className="p-4">
           <div className="flex items-center justify-between gap-3">
             <span className="rotulo text-brita">Na escala</span>
@@ -104,7 +104,7 @@ export function ReportarDivergencia() {
             autoComplete="off"
             spellCheck={false}
             placeholder="ABC1D23"
-            className="mt-1.5 w-full rounded-chip border-2 border-tinta bg-superficie-2 px-4 py-4 text-center font-mono text-3xl font-bold tracking-[0.2em] uppercase placeholder:text-brita-2"
+            className="mt-1.5 w-full rounded-chip border-2 border-asfalto bg-concreto-2 px-4 py-4 text-center font-mono text-3xl font-bold tracking-[0.2em] uppercase placeholder:text-brita-2"
           />
 
           {placaDiverge && (
@@ -163,7 +163,7 @@ export function ReportarDivergencia() {
                       placeholder={
                         tipo === 'ocupante' ? 'Ex.: driver + 1 acompanhante' : 'Descreva'
                       }
-                      className="mt-1.5 w-full rounded-chip border border-linha bg-superficie-2 px-3 py-3 text-[15px]"
+                      className="mt-1.5 w-full rounded-chip border border-linha bg-concreto-2 px-3 py-3 text-[15px]"
                     />
                   </div>
                 )}
@@ -182,7 +182,7 @@ export function ReportarDivergencia() {
           value={observacao}
           onChange={(e) => setObservacao(e.target.value)}
           rows={2}
-          className="mt-1.5 w-full resize-none rounded-chip border border-linha bg-superficie-2 px-3 py-2.5 text-[15px]"
+          className="mt-1.5 w-full resize-none rounded-chip border border-linha bg-concreto-2 px-3 py-2.5 text-[15px]"
         />
 
         <label className="rotulo mt-3 flex cursor-pointer items-center justify-between gap-3 rounded-chip border border-dashed border-brita-2 px-3 py-3 text-brita">

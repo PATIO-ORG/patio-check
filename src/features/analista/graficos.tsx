@@ -1,19 +1,17 @@
 import type { ReactNode } from 'react'
 
 /**
- * Verde e vinho aqui são cores de estado (conforme / irregular), não paleta
- * categórica: o significado é fixo em todo o sistema e igual em qualquer paleta.
- * O par foi validado para daltonismo (ΔE deutan 9,8) e sempre vem com legenda e
- * rótulo, nunca só pela cor. O verde das barras é mais claro que o token
- * `liberado` de propósito: o verde escuro de texto cola no vinho para daltônicos.
- * Eixo, grade e rótulos seguem os tokens da paleta.
+ * Verde e vermelho aqui são cores de estado (conforme / irregular), não paleta
+ * categórica: o significado é fixo em todo o sistema. O par foi validado para
+ * daltonismo (ΔE deutan 8.8) e sempre vem acompanhado de legenda e rótulo, nunca
+ * só pela cor.
  */
 export const COR = {
   conforme: '#1f8a5b',
-  irregular: '#9f1239',
-  eixo: 'var(--color-brita)',
-  grade: 'var(--color-linha)',
-  tinta: 'var(--color-tinta)',
+  irregular: '#d92d20',
+  eixo: '#9ca3af',
+  grade: '#e5e5e0',
+  tinta: '#1b1e24',
 } as const
 
 export function Legenda({ itens }: { itens: { cor: string; rotulo: string }[] }) {

@@ -20,9 +20,9 @@ export function LayoutAnalista() {
 
   return (
     <div className="flex min-h-dvh flex-col lg:flex-row">
-      <nav className="flex shrink-0 flex-col bg-barra text-sobre-barra lg:w-60">
+      <nav className="flex shrink-0 flex-col bg-asfalto text-concreto lg:w-60">
         <div className="px-5 pt-5 pb-4">
-          <p className="rotulo text-destaque-barra">Controle de Pátio</p>
+          <p className="rotulo text-demarcacao">Controle de Pátio</p>
           <p className="mt-1 font-display text-lg leading-tight font-extrabold">
             {usuario?.papel === 'lider' ? 'Liderança' : 'Analista'}
           </p>
@@ -36,8 +36,8 @@ export function LayoutAnalista() {
                 className={({ isActive }) =>
                   `flex items-center gap-2 rounded-chip px-3 py-2.5 font-display text-sm font-semibold transition-colors ${
                     isActive
-                      ? 'bg-destaque-barra text-barra'
-                      : 'text-sobre-barra-2 hover:bg-barra-2 hover:text-sobre-barra'
+                      ? 'bg-demarcacao text-asfalto'
+                      : 'text-brita-2 hover:bg-asfalto-2 hover:text-concreto'
                   }`
                 }
               >
@@ -52,46 +52,46 @@ export function LayoutAnalista() {
           ))}
         </ul>
 
-        <div className="mt-auto hidden border-t border-barra-3 p-4 lg:block">
+        <div className="mt-auto hidden border-t border-asfalto-3 p-4 lg:block">
           <button
             onClick={alternar}
             className={`rotulo flex w-full items-center justify-between gap-2 rounded-chip border px-3 py-2.5 transition-colors ${
               rodando
-                ? 'border-destaque-barra text-destaque-barra'
-                : 'border-barra-3 text-sobre-barra-2 hover:border-sobre-barra-3'
+                ? 'border-demarcacao text-demarcacao'
+                : 'border-asfalto-3 text-brita-2 hover:border-brita'
             }`}
           >
             <span>Simulador</span>
             <span className={rodando ? 'anim-pulso' : ''}>{rodando ? 'ligado' : 'desligado'}</span>
           </button>
-          <p className="mt-2 text-[11px] leading-snug text-sobre-barra-3">
+          <p className="mt-2 text-[11px] leading-snug text-brita">
             Gera check-ins fictícios para a demonstração. Não existe na versão com backend.
           </p>
           <button
             onClick={() => {
               if (confirm('Voltar a demonstração ao estado inicial?')) reiniciarDemonstracao()
             }}
-            className="rotulo mt-3 text-sobre-barra-3 hover:text-sobre-barra"
+            className="rotulo mt-3 text-brita hover:text-concreto"
           >
             Reiniciar demonstração
           </button>
         </div>
       </nav>
 
-      <div className="min-w-0 flex-1 bg-fundo">
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-linha bg-superficie-2 px-5 py-3">
+      <div className="min-w-0 flex-1 bg-concreto">
+        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-linha bg-concreto-2 px-5 py-3">
           <p className="rotulo text-brita">{dataExtensa(HOJE)}</p>
           <div className="flex items-center gap-3">
             <button
               onClick={alternar}
               className={`rotulo rounded-chip border px-3 py-1.5 lg:hidden ${
-                rodando ? 'border-destaque text-destaque-texto' : 'border-linha text-brita'
+                rodando ? 'border-demarcacao text-demarcacao-escura' : 'border-linha text-brita'
               }`}
             >
               Simulador {rodando ? 'ligado' : 'desligado'}
             </button>
             <span className="text-sm font-semibold">{usuario?.nome}</span>
-            <button onClick={sair} className="rotulo text-brita hover:text-tinta">
+            <button onClick={sair} className="rotulo text-brita hover:text-asfalto">
               Sair
             </button>
           </div>
