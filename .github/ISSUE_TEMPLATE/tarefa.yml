@@ -1,0 +1,27 @@
+name: Tarefa
+description: Algo a fazer no sistema — funcionalidade, correção ou decisão pendente.
+body:
+  - type: textarea
+    id: oque
+    attributes:
+      label: O que e por quê
+      description: O que precisa mudar e qual problema do pátio isso resolve.
+    validations:
+      required: true
+  - type: textarea
+    id: onde
+    attributes:
+      label: Onde mexer
+      description: 'Arquivos ou telas envolvidos, se souber. Exemplo: `src/features/fiscal/ListaDoDia.tsx`'
+  - type: textarea
+    id: pronto
+    attributes:
+      label: Pronto quando
+      description: 'Critério que dá para conferir. Exemplo: digitar RJK-4E12 na busca encontra o driver RJK4E12.'
+    validations:
+      required: true
+  - type: input
+    id: depende
+    attributes:
+      label: Depende de
+      description: 'Outra issue (#N) ou decisão da diretoria. Deixe em branco se não depende de nada.'

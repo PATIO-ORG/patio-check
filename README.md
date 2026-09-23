@@ -72,7 +72,22 @@ npm run verify:demo                   # percorre o roteiro acima num navegador r
 
 ## Como contribuir
 
-O trabalho está dividido em fatias independentes. Cada dev pega uma:
+As tarefas ficam no **[quadro do projeto](https://github.com/users/ViniciusLN1/projects/4)**.
+
+1. Escolha uma issue em **Todo**. Para começar, prefira as marcadas com
+   `good first issue`: são pequenas, independentes e têm critério de pronto.
+2. Atribua a issue a você, para ninguém pegar a mesma.
+3. Crie a branch com o número da issue: `git checkout -b 12-busca-placa-hifen`.
+4. Abra o PR pelo modelo, com `Fecha #12`. O CI roda testes e build e precisa ficar
+   verde. Ao mergear, a issue fecha e o cartão vai para **Done** sozinho.
+5. **`src/domain/` e `src/data/DataSource.ts` são contratos compartilhados** por todas
+   as telas. Precisou mexer ali? Avise o grupo antes e abra um PR só para isso.
+6. Regra de negócio nova ganha teste antes da implementação.
+
+Issues com `aguarda diretoria` dependem de uma decisão da empresa e ficam com o
+Vinícius. As com `fase 2` começam depois de definida a hospedagem.
+
+Cada merge na `master` republica a demonstração sozinho, em 1 ou 2 minutos.
 
 | Fatia | Onde mora |
 |---|---|
@@ -80,15 +95,6 @@ O trabalho está dividido em fatias independentes. Cada dev pega uma:
 | Painel | `src/features/analista/Dashboard.tsx` |
 | Escala e auditoria | `src/features/analista/Escala.tsx`, `Auditoria.tsx` |
 | Alertas e relatórios | `src/features/analista/Alertas.tsx`, `Relatorios.tsx` |
-
-1. Crie uma branch com o nome da fatia: `git checkout -b fiscal/busca-por-placa`.
-2. Faça PRs pequenos. O CI roda testes e build em todo PR e precisa estar verde para o
-   merge.
-3. **`src/domain/` e `src/data/DataSource.ts` são contratos compartilhados** por todas
-   as fatias. Precisou mexer ali? Avise o grupo antes, e abra um PR só para isso.
-4. Regra de negócio nova ganha teste antes da implementação.
-
-Cada merge na `master` republica a demonstração sozinho em 1 ou 2 minutos.
 
 ## Stack
 
