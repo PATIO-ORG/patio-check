@@ -78,7 +78,8 @@ As tarefas ficam no **[quadro do projeto](https://github.com/users/ViniciusLN1/p
    `good first issue`: são pequenas, independentes e têm critério de pronto.
 2. Atribua a issue a você, para ninguém pegar a mesma.
 3. Crie a branch com o número da issue: `git checkout -b 12-busca-placa-hifen`.
-4. Abra o PR pelo modelo, com `Fecha #12`. O CI roda testes e build e precisa ficar
+4. Abra o PR pelo modelo, com `Closes #12`. A palavra precisa estar em inglês: é ela que
+   fecha a issue no merge. O CI roda testes e build e precisa ficar
    verde. Ao mergear, a issue fecha e o cartão vai para **Done** sozinho.
 5. **`src/domain/` e `src/data/DataSource.ts` são contratos compartilhados** por todas
    as telas. Precisou mexer ali? Avise o grupo antes e abra um PR só para isso.

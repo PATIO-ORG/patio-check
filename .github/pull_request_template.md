@@ -1,4 +1,5 @@
-Fecha #
+Closes #
+<!-- Número da issue. Precisa ser "Closes" em inglês: é o que fecha a issue e move o cartão para Done no merge. -->
 
 ## O que mudou
 
