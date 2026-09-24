@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { DataSource } from './DataSource'
+import { FastAPIDataSource } from './FastAPIDataSource'
 import { MockDataSource } from './mock/MockDataSource'
 import { SimuladorPatio } from './mock/simulator'
 import { isoDia } from './mock/seed'
@@ -10,11 +11,13 @@ export const HOJE = isoDia(0)
 
 const mock = new MockDataSource()
 const simulador = new SimuladorPatio(mock, HOJE)
+const apiUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, '')
+const dataSource: DataSource = apiUrl ? new FastAPIDataSource(apiUrl) : mock
 
-const Ctx = createContext<DataSource>(mock)
+const Ctx = createContext<DataSource>(dataSource)
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  return <Ctx.Provider value={mock}>{children}</Ctx.Provider>
+  return <Ctx.Provider value={dataSource}>{children}</Ctx.Provider>
 }
 
 export function useData(): DataSource {

@@ -1,5 +1,25 @@
 # Controle de Pátio
 
+## API FastAPI
+
+O frontend usa o mock por padrão. Para executar com a API local:
+
+```bash
+npm run api:install
+npm run api:dev
+```
+
+Em outro terminal, inicie o frontend apontando para a API:
+
+```bash
+$env:VITE_API_URL='http://localhost:8000'
+npm run dev
+```
+
+A API inicial usa memória e serve para validar a integração. O próximo passo de
+produção é substituir o estado em `backend/app/main.py` por PostgreSQL e aplicar
+autenticação no backend.
+
 Sistema web de fiscalização de pátio: substitui a folha impressa de conferência de
 drivers por uma lista que atualiza em tempo real, com bloqueio de driver adulterado,
 alerta imediato para o analista e histórico do dia inteiro.

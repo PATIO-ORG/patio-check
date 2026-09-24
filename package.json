@@ -8,6 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
+    "api:install": "python -m pip install -r backend/requirements.txt",
+    "api:dev": "python -m uvicorn app.main:app --reload --app-dir backend",
     "test": "vitest run",
     "test:watch": "vitest",
     "verify:demo": "node scripts/verificar-demo.mjs"
