@@ -62,9 +62,13 @@ export function useLiveData<T>(
 
   useEffect(() => {
     let vivo = true
-    void consultaRef.current(ds).then((r) => {
-      if (vivo) setDados(r)
-    })
+    void consultaRef.current(ds)
+      .then((r) => {
+        if (vivo) setDados(r)
+      })
+      .catch((erro: unknown) => {
+        console.error('Falha ao carregar dados do pátio:', erro)
+      })
     return () => {
       vivo = false
     }

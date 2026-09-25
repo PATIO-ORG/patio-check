@@ -105,6 +105,21 @@
   animation: pulso-sinal 1.6s ease-in-out infinite;
 }
 
+@keyframes entrada-app {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility anim-entrada-app {
+  animation: entrada-app 360ms ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

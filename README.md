@@ -1,8 +1,24 @@
 # Controle de Pátio
 
-## API FastAPI
+## API FastAPI + Supabase
 
-O frontend usa o mock por padrão. Para executar com a API local:
+O frontend usa o mock quando `VITE_API_URL` não está configurada. A integração com
+Supabase usa o banco, RLS e autenticação do projeto; o FastAPI valida os JWTs antes
+de aceitar chamadas protegidas.
+
+1. Crie um projeto no Supabase.
+2. Copie `.env.example` para `.env` e preencha as chaves do projeto.
+3. No SQL Editor do Supabase, execute [`supabase/migrations/202609240001_schema.sql`](supabase/migrations/202609240001_schema.sql).
+4. Crie usuários em Authentication → Users e cadastre o mesmo UUID em `public.usuarios`, por exemplo:
+
+```sql
+insert into public.usuarios (id, nome, email, papel)
+values ('UUID_DO_USUARIO_AUTH', 'Nome do usuário', 'email@empresa.com', 'analista');
+```
+
+Não coloque `SUPABASE_JWT_SECRET` ou uma service role key no frontend.
+
+Para executar com a API local:
 
 ```bash
 npm run api:install
@@ -12,13 +28,19 @@ npm run api:dev
 Em outro terminal, inicie o frontend apontando para a API:
 
 ```bash
-$env:VITE_API_URL='http://localhost:8000'
 npm run dev
 ```
 
-A API inicial usa memória e serve para validar a integração. O próximo passo de
-produção é substituir o estado em `backend/app/main.py` por PostgreSQL e aplicar
-autenticação no backend.
+Com `.env` preenchido, a tela de login usa email e senha do Supabase e as chamadas
+enviam o access token automaticamente. Sem as variáveis Supabase, o login demo e
+o armazenamento em memória continuam disponíveis para apresentação local.
+
+Teste a API em `http://localhost:8000/docs` e a saúde em `http://localhost:8000/health`.
+
+> A migration define tabelas e RLS. O FastAPI usa a service role key apenas no
+> servidor para persistir operações no Supabase; a autorização de cada operação
+> continua sendo validada pelo JWT e pelo papel registrado em `public.usuarios`.
+> Nunca exponha essa chave no frontend.
 
 Sistema web de fiscalização de pátio: substitui a folha impressa de conferência de
 drivers por uma lista que atualiza em tempo real, com bloqueio de driver adulterado,

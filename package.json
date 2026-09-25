@@ -8,13 +8,14 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "api:install": "python -m pip install -r backend/requirements.txt",
-    "api:dev": "python -m uvicorn app.main:app --reload --app-dir backend",
+    "api:install": ".\\.venv\\Scripts\\python.exe -m pip install -r backend/requirements.txt",
+    "api:dev": ".\\.venv\\Scripts\\python.exe -m uvicorn app.main:app --reload --app-dir backend --env-file .env",
     "test": "vitest run",
     "test:watch": "vitest",
     "verify:demo": "node scripts/verificar-demo.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.4",

@@ -52,18 +52,37 @@ function Importador() {
   const [previa, setPrevia] = useState<PreviaImportacao>()
   const [nomeArquivo, setNomeArquivo] = useState('')
   const [mensagem, setMensagem] = useState('')
+  const [erroImportacao, setErroImportacao] = useState(false)
+  const [importando, setImportando] = useState(false)
 
   async function lerArquivo(arquivo: File) {
     setMensagem('')
+    setErroImportacao(false)
     setNomeArquivo(arquivo.name)
-    setPrevia(await ds.previsualizarPlanilha(await arquivo.text()))
+    try {
+      setPrevia(await ds.previsualizarPlanilha(await arquivo.text()))
+    } catch (erro) {
+      setErroImportacao(true)
+      setMensagem(erro instanceof Error ? erro.message : 'Não foi possível ler a planilha.')
+      setPrevia(undefined)
+    }
   }
 
   async function confirmar(linhas: LinhaValidada[]) {
     if (!usuario) return
-    await ds.importarPlanilha({ data: HOJE, linhas, usuarioId: usuario.id })
-    setPrevia(undefined)
-    setMensagem(`${linhas.length} drivers importados de ${nomeArquivo}.`)
+    setImportando(true)
+    setMensagem('')
+    setErroImportacao(false)
+    try {
+      await ds.importarPlanilha({ data: HOJE, linhas, usuarioId: usuario.id })
+      setPrevia(undefined)
+      setMensagem(`${linhas.length} drivers importados de ${nomeArquivo}.`)
+    } catch (erro) {
+      setErroImportacao(true)
+      setMensagem(erro instanceof Error ? erro.message : 'Não foi possível importar a escala.')
+    } finally {
+      setImportando(false)
+    }
   }
 
   return (
@@ -85,7 +104,7 @@ function Importador() {
               Escolher arquivo CSV da escala
             </span>
             <span className="mt-0.5 block text-[13px] text-brita">
-              Colunas: ID, nome, veículo, cor, placa, rota, turno. Nada é gravado antes da conferência.
+              Aceita o modelo padrão ou a planilha JDF de impressão. Nada é gravado antes da conferência.
             </span>
           </span>
           <span className="rotulo shrink-0 rounded-chip bg-asfalto px-3 py-2 text-demarcacao">
@@ -104,7 +123,9 @@ function Importador() {
         </label>
 
         {mensagem && (
-          <p className="mt-3 rounded-chip bg-liberado-fraca px-4 py-2.5 text-sm text-liberado">
+          <p className={`mt-3 rounded-chip px-4 py-2.5 text-sm ${
+            erroImportacao ? 'bg-sinal-fraca text-sinal' : 'bg-liberado-fraca text-liberado'
+          }`}>
             {mensagem}
           </p>
         )}
@@ -168,9 +189,9 @@ function Importador() {
             <div className="mt-3 flex gap-2">
               <Botao
                 onClick={() => confirmar(previa.validas)}
-                disabled={previa.validas.length === 0}
+                disabled={previa.validas.length === 0 || importando}
               >
-                Importar {previa.validas.length} drivers
+                {importando ? 'Importando...' : `Importar ${previa.validas.length} drivers`}
               </Botao>
               <Botao variante="fantasma" onClick={() => setPrevia(undefined)}>
                 Descartar
@@ -301,12 +322,78 @@ function Rotulado({ texto, children }: { texto: string; children: React.ReactNod
 function Tabela({ itens }: { itens: ItemDetalhado[] }) {
   const ds = useData()
   const { usuario } = useSessao()
+  const [selecionados, setSelecionados] = useState<Set<string>>(new Set())
+  const idsSelecionados = itens
+    .map(({ item }) => item.id)
+    .filter((id) => selecionados.has(id))
+  const todosSelecionados = itens.length > 0 && idsSelecionados.length === itens.length
+
+  function alternarItem(itemId: string) {
+    setSelecionados((atuais) => {
+      const novos = new Set(atuais)
+      if (novos.has(itemId)) novos.delete(itemId)
+      else novos.add(itemId)
+      return novos
+    })
+  }
+
+  function alternarTodos() {
+    setSelecionados(todosSelecionados ? new Set() : new Set(itens.map(({ item }) => item.id)))
+  }
+
+  async function removerSelecionados(removerTodos: boolean) {
+    if (!usuario) return
+    const ids = removerTodos ? itens.map(({ item }) => item.id) : idsSelecionados
+    if (ids.length === 0) return
+    const descricao = removerTodos
+      ? 'Remover todos os drivers da escala de hoje?'
+      : `Remover ${ids.length} driver${ids.length === 1 ? '' : 's'} selecionado${ids.length === 1 ? '' : 's'}?`
+    if (!confirm(`${descricao} Esta ação não pode ser desfeita.`)) return
+
+    await Promise.all(
+      ids.map((escalaItemId) => ds.removerItem({ usuarioId: usuario.id, escalaItemId })),
+    )
+    setSelecionados(new Set())
+  }
 
   return (
     <div className="overflow-x-auto">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-linha bg-concreto-2 px-4 py-3">
+        <label className="flex items-center gap-2 text-sm font-semibold">
+          <input
+            type="checkbox"
+            checked={todosSelecionados}
+            onChange={alternarTodos}
+            disabled={itens.length === 0}
+            className="h-4 w-4 accent-asfalto"
+            aria-label="Selecionar todos os drivers"
+          />
+          Selecionar todos
+        </label>
+        <div className="flex flex-wrap items-center gap-2">
+          {idsSelecionados.length > 0 && (
+            <Botao
+              variante="perigo"
+              onClick={() => void removerSelecionados(false)}
+            >
+              Remover selecionados ({idsSelecionados.length})
+            </Botao>
+          )}
+          <Botao
+            variante="fantasma"
+            onClick={() => void removerSelecionados(true)}
+            disabled={itens.length === 0}
+          >
+            Remover todos
+          </Botao>
+        </div>
+      </div>
       <table className="w-full min-w-[820px] text-left text-sm">
         <thead className="border-b border-linha bg-concreto-2">
           <tr className="rotulo text-brita">
+            <th className="w-10 px-4 py-2.5">
+              <span className="sr-only">Selecionar</span>
+            </th>
             <th className="px-4 py-2.5">Rota</th>
             <th className="px-4 py-2.5">Driver</th>
             <th className="px-4 py-2.5">Veículo</th>
@@ -319,6 +406,15 @@ function Tabela({ itens }: { itens: ItemDetalhado[] }) {
         <tbody className="divide-y divide-linha">
           {itens.map(({ item, motorista }) => (
             <tr key={item.id} className={item.avulso ? 'bg-demarcacao/8' : undefined}>
+              <td className="px-4 py-2.5">
+                <input
+                  type="checkbox"
+                  checked={selecionados.has(item.id)}
+                  onChange={() => alternarItem(item.id)}
+                  className="h-4 w-4 accent-asfalto"
+                  aria-label={`Selecionar ${motorista.nome}`}
+                />
+              </td>
               <td className="px-4 py-2.5">
                 <Rota valor={item.rota} />
               </td>

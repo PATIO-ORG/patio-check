@@ -36,6 +36,27 @@ describe('previsualizarPlanilha', () => {
     const previa = await ds.previsualizarPlanilha([linha, linha].join('\n'))
     expect(previa.invalidas[0].erros).toContain('ID do driver repetido na planilha')
   })
+
+  it('reconhece a planilha JDF com instruções antes do cabeçalho', async () => {
+    const csv = [
+      'DIVISÃO DE TAREFAS DURANTE A EXPEDIÇÃO',
+      'HORÁRIO,LETRA,ID,DRIVER ESCALADO,TIPO,PLACA,Validação,Column 9,Column 1',
+      '06:00,A-1,1324707,TAUWILLIAM DA SILVA PAIVA TEIXEIRA,MOTO,QPR3I24,,,Não chegou',
+      '13:30,B-2,3394888,EDMAR PEREIRA CARDOSO,MOTO,RMK2J53,,,Não chegou',
+      '13:30,,,,,,,,Não chegou',
+    ].join('\n')
+
+    const previa = await ds.previsualizarPlanilha(csv)
+    expect(previa.invalidas).toHaveLength(0)
+    expect(previa.validas).toHaveLength(2)
+    expect(previa.validas[0]).toMatchObject({
+      driverId: '1324707',
+      rota: 'A-1',
+      turno: 'manha',
+      veiculoModelo: 'MOTO',
+    })
+    expect(previa.validas[1].turno).toBe('tarde')
+  })
 })
 
 describe('fluxo de check-in e bloqueio', () => {

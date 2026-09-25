@@ -33,7 +33,12 @@ const TURNOS_VALIDOS: Record<string, Turno> = {
 
 const PLACA_MERCOSUL = /^[A-Z]{3}\d[A-Z]\d{2}$/
 const PLACA_ANTIGA = /^[A-Z]{3}-?\d{4}$/
-const ROTA = /^[A-Z]-\d{2}$/
+function turnoDoHorario(horario: string): Turno {
+  const hora = Number(horario.split(':')[0])
+  if (hora >= 6 && hora < 12) return 'manha'
+  if (hora >= 12 && hora < 18) return 'tarde'
+  return 'noite'
+}
 
 export function normalizarPlaca(v: string): string {
   return v.toUpperCase().replace(/[^A-Z0-9]/g, '')
@@ -155,28 +160,40 @@ export class MockDataSource implements DataSource {
   }
 
   async previsualizarPlanilha(csv: string): Promise<PreviaImportacao> {
-    const linhas = csv
-      .split(/\r?\n/)
-      .map((l) => l.trim())
-      .filter(Boolean)
-    if (linhas.length === 0) return { validas: [], invalidas: [] }
-
-    const cabecalho = linhas[0].toLowerCase()
-    const temCabecalho = cabecalho.includes('driver') || cabecalho.includes('placa')
-    const corpo = temCabecalho ? linhas.slice(1) : linhas
+    const linhas = csv.split(/\r?\n/)
+    const indiceJdf = linhas.findIndex((l) => {
+      const cabecalho = l.toLowerCase()
+      return cabecalho.includes('horário') && cabecalho.includes('driver escalado')
+    })
+    const formatoJdf = indiceJdf >= 0
+    const inicio = formatoJdf ? indiceJdf + 1 : 0
+    const primeiraLinha = linhas[inicio]?.trim().toLowerCase() ?? ''
+    const temCabecalho = !formatoJdf && (primeiraLinha.includes('driver') || primeiraLinha.includes('placa'))
+    const corpo = (temCabecalho ? linhas.slice(inicio + 1) : linhas.slice(inicio))
+      .map((texto, indice) => ({ texto: texto.trim(), linha: inicio + indice + (temCabecalho ? 2 : 1) }))
+      .filter(({ texto }) => texto.length > 0)
+    if (corpo.length === 0) return { validas: [], invalidas: [] }
 
     const vistos = new Set<string>()
-    const validadas: LinhaValidada[] = corpo.map((linhaTexto, idx) => {
+    const validadas = corpo.flatMap(({ texto: linhaTexto, linha }) => {
       const col = linhaTexto.split(/[;,\t]/).map((c) => c.trim())
-      const [driverId = '', nome = '', veiculoModelo = '', veiculoCor = '', placa = '', rota = '', turno = ''] = col
+      const [horario = '', letra = '', id = '', nomeJdf = '', tipo = '', placaJdf = ''] = col
+      if (formatoJdf && !id && !nomeJdf && !placaJdf) return []
+      const driverId = formatoJdf ? id : col[0] ?? ''
+      const nome = formatoJdf ? nomeJdf : col[1] ?? ''
+      const veiculoModelo = formatoJdf ? tipo : col[2] ?? ''
+      const veiculoCor = formatoJdf ? '' : col[3] ?? ''
+      const placa = formatoJdf ? placaJdf : col[4] ?? ''
+      const rota = formatoJdf ? letra : col[5] ?? ''
+      const turno = formatoJdf ? turnoDoHorario(horario) : col[6] ?? ''
       const erros: string[] = []
 
       if (col.length < 6) erros.push(`Esperadas 7 colunas, encontradas ${col.length}`)
-      if (!/^SPX\d{4,6}$/i.test(driverId)) erros.push('ID do driver fora do padrão SPXxxxxx')
+      if (!/^(?:SPX\d{4,6}|\d{3,10})$/i.test(driverId)) erros.push('ID do driver fora do padrão')
       if (nome.length < 3) erros.push('Nome ausente ou curto demais')
       if (!veiculoModelo) erros.push('Modelo do veículo ausente')
       if (!placaValida(placa)) erros.push('Placa inválida')
-      if (!ROTA.test(rota.toUpperCase())) erros.push('Rota fora do padrão (ex: A-15)')
+      if (!/^[A-Z]-\d{1,2}$/.test(rota.toUpperCase())) erros.push('Rota fora do padrão (ex: A-15)')
       if (!TURNOS_VALIDOS[turno.toLowerCase()]) erros.push('Turno deve ser manha, tarde ou noite')
 
       const chave = driverId.toUpperCase()
@@ -184,7 +201,7 @@ export class MockDataSource implements DataSource {
       vistos.add(chave)
 
       return {
-        linha: idx + (temCabecalho ? 2 : 1),
+        linha,
         driverId: driverId.toUpperCase(),
         nome,
         veiculoModelo,

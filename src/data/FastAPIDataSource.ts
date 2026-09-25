@@ -19,6 +19,7 @@ import type {
   PreviaImportacao,
   ResumoDiario,
 } from './DataSource'
+import { supabase } from '../lib/supabase'
 
 interface ApiResultado {
   ok: true
@@ -39,19 +40,18 @@ export class FastAPIDataSource implements DataSource {
   }
 
   private async request<T>(path: string, init?: RequestInit): Promise<T> {
-    const resposta = await fetch(`${this.baseUrl}${path}`, {
-      ...init,
-      headers: {
-        'Content-Type': 'application/json',
-        ...init?.headers,
-      },
-    })
+    const token = supabase
+      ? (await supabase.auth.getSession()).data.session?.access_token
+      : undefined
+    const headers = new Headers(init?.headers)
+    headers.set('Content-Type', 'application/json')
+    if (token) headers.set('Authorization', `Bearer ${token}`)
 
+    const resposta = await fetch(`${this.baseUrl}${path}`, { ...init, headers })
     if (!resposta.ok) {
       const detalhe = await resposta.text()
       throw new Error(detalhe || `Erro HTTP ${resposta.status}`)
     }
-
     if (resposta.status === 204) return undefined as T
     return resposta.json() as Promise<T>
   }
@@ -162,10 +162,10 @@ export class FastAPIDataSource implements DataSource {
   }
 
   subscribe(listener: (evento: EventoDados) => void) {
-    const intervalo = window.setInterval(() => {
-      listener({ tipo: 'mudanca', em: new Date().toISOString() })
-    }, 5000)
+    const intervalo = window.setInterval(
+      () => listener({ tipo: 'mudanca', em: new Date().toISOString() }),
+      5000,
+    )
     return () => window.clearInterval(intervalo)
   }
-
 }
