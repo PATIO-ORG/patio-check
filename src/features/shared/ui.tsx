@@ -56,7 +56,7 @@ export function StatusPill({ status }: { status: StatusItem }) {
 
 export function Rota({ valor }: { valor: string }) {
   return (
-    <span className="inline-block rounded-chip bg-asfalto px-2 py-1 font-mono text-[13px] font-bold tracking-[0.08em] text-demarcacao">
+    <span className="inline-block rounded-chip bg-asfalto px-2 py-1 font-mono text-[13px] font-bold tracking-[0.08em] whitespace-nowrap text-demarcacao">
       {valor}
     </span>
   )
@@ -70,8 +70,8 @@ export function Botao({
   variante?: 'primario' | 'perigo' | 'neutro' | 'fantasma'
 }) {
   const estilos = {
-    primario: 'bg-asfalto text-concreto hover:bg-asfalto-2 disabled:bg-brita-2',
-    perigo: 'bg-sinal text-white hover:brightness-110 disabled:bg-brita-2',
+    primario: 'bg-asfalto text-concreto shadow-[0_2px_8px_-2px_rgba(27,30,36,0.45)] hover:bg-asfalto-2 disabled:bg-brita-2 disabled:shadow-none',
+    perigo: 'bg-sinal text-white shadow-[0_2px_8px_-2px_rgba(192,39,27,0.45)] hover:brightness-110 disabled:bg-brita-2 disabled:shadow-none',
     neutro: 'bg-white text-asfalto border border-linha hover:border-asfalto',
     fantasma: 'text-brita hover:text-asfalto',
   }[variante]
@@ -79,7 +79,7 @@ export function Botao({
   return (
     <button
       {...props}
-      className={`rounded-chip px-4 py-2.5 font-display text-sm font-bold transition-colors disabled:cursor-not-allowed ${estilos} ${props.className ?? ''}`}
+      className={`rounded-chip px-4 py-2.5 font-display text-sm font-bold transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:active:scale-100 ${estilos} ${props.className ?? ''}`}
     >
       {children}
     </button>
@@ -94,16 +94,33 @@ export function Cartao({
   className?: string
 }) {
   return (
-    <section className={`rounded-lg border border-linha bg-white ${className}`}>
+    <section
+      className={`sombra-cartao rounded-lg border border-linha bg-concreto-2 transition-shadow ${className}`}
+    >
       {children}
     </section>
   )
 }
 
-export function TituloSecao({ children, acao }: { children: ReactNode; acao?: ReactNode }) {
+export function TituloSecao({
+  children,
+  acao,
+  icone,
+}: {
+  children: ReactNode
+  acao?: ReactNode
+  icone?: ReactNode
+}) {
   return (
     <header className="flex items-center justify-between gap-4 border-b border-linha px-5 py-3.5">
-      <h2 className="font-display text-[15px] font-bold tracking-[-0.01em]">{children}</h2>
+      <h2 className="flex items-center gap-2.5 font-display text-[15px] font-bold tracking-[-0.01em]">
+        {icone && (
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-asfalto text-demarcacao">
+            {icone}
+          </span>
+        )}
+        {children}
+      </h2>
       {acao}
     </header>
   )
