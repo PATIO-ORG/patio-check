@@ -28,6 +28,42 @@
   --radius-chip: 5px;
 }
 
+/* Tema alternável só da tela de Escala: Shopee laranja (claro) e Dark Ops (escuro).
+   Redefine os tokens decorativos do @theme só dentro do escopo .pc-escala — o
+   resto do app (menu, outras telas) continua com a paleta padrão. */
+.pc-escala[data-tema='claro'] {
+  --pc-ink: #241b17;
+  --pc-accent: #ee4d2d;
+  --pc-accent-2: #ff6b45;
+  --color-asfalto: #ee4d2d;
+  --color-asfalto-2: #ff6b45;
+  --color-asfalto-3: #ffd3c2;
+  --color-concreto: #f9f4f1;
+  --color-concreto-2: #ffffff;
+  --color-brita: #8a6f66;
+  --color-brita-2: #e8c9bb;
+  --color-linha: #f3dcd1;
+  --color-demarcacao: #ffffff;
+  --color-demarcacao-escura: #ee4d2d;
+}
+
+.pc-escala[data-tema='escuro'] {
+  color-scheme: dark;
+  --pc-ink: #e7ebf3;
+  --pc-accent: #ff8a3d;
+  --pc-accent-2: #ffab6b;
+  --color-asfalto: #ff8a3d;
+  --color-asfalto-2: #ffab6b;
+  --color-asfalto-3: #3a2716;
+  --color-concreto: #0b0e14;
+  --color-concreto-2: #12161f;
+  --color-brita: #8a93a6;
+  --color-brita-2: #2a3241;
+  --color-linha: #232936;
+  --color-demarcacao: #0b0e14;
+  --color-demarcacao-escura: #ffab6b;
+}
+
 @layer base {
   * {
     scrollbar-color: var(--color-brita-2) transparent;
@@ -103,6 +139,36 @@
 
 @utility anim-pulso {
   animation: pulso-sinal 1.6s ease-in-out infinite;
+}
+
+@keyframes entrada-numero {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@utility anim-numero {
+  animation: entrada-numero 260ms ease-out;
+}
+
+@keyframes girar {
+  to { transform: rotate(360deg); }
+}
+
+@utility anim-girar {
+  animation: girar 900ms linear infinite;
+}
+
+/* Sombra de cartao: profundidade sutil, sempre na cor do asfalto. */
+@utility sombra-cartao {
+  box-shadow:
+    0 1px 2px rgba(27, 30, 36, 0.04),
+    0 8px 20px -12px rgba(27, 30, 36, 0.18);
+}
+
+@utility sombra-cartao-hover {
+  box-shadow:
+    0 2px 4px rgba(27, 30, 36, 0.05),
+    0 14px 28px -14px rgba(27, 30, 36, 0.24);
 }
 
 @media (prefers-reduced-motion: reduce) {
