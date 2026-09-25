@@ -22,3 +22,25 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Ambiente e segredos
+# Chaves do Supabase e da Vercel ficam em variáveis de ambiente, nunca no código.
+# Só o .env.example (com os nomes das variáveis, sem valores) entra no repositório.
+.env
+.env.*
+!.env.example
+
+# Estado local da CLI do Supabase e da Vercel
+supabase/.temp/
+supabase/.branches/
+supabase/functions/.env
+.vercel/
+
+# Dados reais da operação
+# Planilhas de escala exportadas têm nome, ID e placa de drivers (LGPD) e nunca
+# entram neste repositório, que é público. Exemplos e testes usam arquivos com
+# dados inventados, liberados abaixo um a um.
+*.csv
+*.xlsx
+*.xls
+!public/escala-exemplo.csv
