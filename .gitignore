@@ -44,3 +44,6 @@ supabase/functions/.env
 *.xlsx
 *.xls
 !public/escala-exemplo.csv
+
+# Documentação interna para o Claude Code (não vai para o repositório)
+CLAUDE.md
