@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { HOJE, useLiveData } from '../../data/provider'
 import type { ItemDetalhado, StatusItem } from '../../domain/types'
 import { Placa } from '../shared/Placa'
-import { CORES_STATUS, Rota, StatusPill, Vazio } from '../shared/ui'
+import { Botao, CORES_STATUS, Rota, StatusPill, Vazio } from '../shared/ui'
 
 type Filtro = 'pendentes' | 'conferidos' | 'bloqueados' | 'todos'
 
@@ -15,9 +15,9 @@ const FILTROS: { chave: Filtro; rotulo: string; status?: StatusItem[] }[] = [
 ]
 
 export function ListaDoDia() {
-  const { dados: itens } = useLiveData((ds) => ds.listarItens(HOJE))
+  const { dados: itens, erro, recarregar } = useLiveData((ds) => ds.listarItens(HOJE))
   const [busca, setBusca] = useState('')
-  const [filtro, setFiltro] = useState<Filtro>('pendentes')
+  const [filtro, setFiltro] = useState<Filtro>('todos')
 
   const contagem = useMemo(() => {
     const c: Record<Filtro, number> = { pendentes: 0, conferidos: 0, bloqueados: 0, todos: 0 }
@@ -48,6 +48,12 @@ export function ListaDoDia() {
 
   return (
     <>
+      {erro && (
+        <div role="alert" className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-chip bg-sinal-fraca px-4 py-3 text-sm text-sinal">
+          <span>Não foi possível carregar a escala: {erro}</span>
+          <Botao variante="neutro" onClick={recarregar}>Tentar novamente</Botao>
+        </div>
+      )}
       <div className="sticky top-[92px] z-10 -mx-4 bg-concreto px-4 pt-4 pb-3">
         <input
           value={busca}

@@ -94,8 +94,8 @@ export class MockDataSource implements DataSource {
   }
 
   private notificar() {
+    salvarEstado(this.estado)
     if (this.canal) {
-      salvarEstado(this.estado)
       this.canal.postMessage('mudanca')
     }
     this.avisarListeners()

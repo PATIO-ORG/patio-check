@@ -18,24 +18,64 @@ values ('UUID_DO_USUARIO_AUTH', 'Nome do usuário', 'email@empresa.com', 'analis
 
 Não coloque `SUPABASE_JWT_SECRET` ou uma service role key no frontend.
 
-Para executar com a API local:
+### Executar com API local e acessar pelo celular
+
+O celular e o computador precisam estar na mesma rede Wi-Fi. A API e o frontend
+rodam no computador; no celular, `localhost` aponta para o próprio celular, então
+use o IPv4 do computador nos endereços abaixo.
+
+1. Instale as dependências uma vez e configure o `.env` com as credenciais do
+   Supabase e o endereço local do backend:
+
+```env
+VITE_SUPABASE_URL=https://seu-projeto.supabase.co
+VITE_SUPABASE_ANON_KEY=sua_chave_anon
+VITE_API_URL=http://192.168.3.207:8000
+
+SUPABASE_JWT_SECRET=seu_jwt_secret
+SUPABASE_URL=https://seu-projeto.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=sua_service_role_key
+CORS_ORIGINS=http://localhost:5173,http://localhost:4173,http://192.168.3.207:5173
+```
+
+Substitua `192.168.3.207` pelo endereço IPv4 atual do computador (no Windows,
+rode `ipconfig` e procure o IPv4 do adaptador Wi-Fi). O endereço do frontend em
+`CORS_ORIGINS` deve ser exatamente o usado no navegador, sem barra no final.
+Nunca compartilhe o `.env` nem publique `SUPABASE_JWT_SECRET` ou
+`SUPABASE_SERVICE_ROLE_KEY`.
+
+2. Abra **dois terminais** na pasta do projeto. No primeiro, inicie a API:
 
 ```bash
 npm run api:install
 npm run api:dev
 ```
 
-Em outro terminal, inicie o frontend apontando para a API:
+O comando inicia o FastAPI na porta `8000` aceitando conexões da rede local. No
+segundo terminal, inicie o frontend:
 
 ```bash
-npm run dev
+npm run dev -- --host
 ```
 
-Com `.env` preenchido, a tela de login usa email e senha do Supabase e as chamadas
-enviam o access token automaticamente. Sem as variáveis Supabase, o login demo e
-o armazenamento em memória continuam disponíveis para apresentação local.
+No computador, abra `http://localhost:5173`. No celular conectado à mesma rede
+Wi-Fi, abra `http://192.168.3.207:5173`, substituindo o IP pelo IPv4 do computador.
+Se o Windows Defender Firewall perguntar, permita Node/Python nas redes privadas.
+Se o celular ainda não conectar, confira se ambos estão na mesma rede e se a rede
+não tem isolamento de dispositivos.
 
-Teste a API em `http://localhost:8000/docs` e a saúde em `http://localhost:8000/health`.
+Com `.env` preenchido, entre com email e senha cadastrados no Supabase. O frontend
+envia o access token ao FastAPI, que grava os dados no banco compartilhado.
+Reinicie os dois comandos depois de alterar o `.env`.
+
+Teste a API no computador em `http://localhost:8000/docs` e a saúde em
+`http://localhost:8000/health`; no celular, use `http://192.168.3.207:8000/health`.
+
+> Abrir o link do GitHub Pages não usa o backend local. A demonstração pública usa
+> dados locais no navegador e não sincroniza analista e fiscal entre dispositivos.
+> Para usar de lugares/redes diferentes, publique o FastAPI em um endereço HTTPS,
+> configure `VITE_API_URL` com essa URL e inclua a origem do frontend em
+> `CORS_ORIGINS`. Não exponha a porta local da API diretamente à internet.
 
 > A migration define tabelas e RLS. O FastAPI usa a service role key apenas no
 > servidor para persistir operações no Supabase; a autorização de cada operação
@@ -46,18 +86,20 @@ Sistema web de fiscalização de pátio: substitui a folha impressa de conferên
 drivers por uma lista que atualiza em tempo real, com bloqueio de driver adulterado,
 alerta imediato para o analista e histórico do dia inteiro.
 
-**Protótipo de demonstração** — dados fictícios, sem backend e sem senha.
+**Demonstração pública** — dados locais de exemplo, sem backend e sem senha.
 
 ### → [Abrir a demonstração](https://viniciusln1.github.io/patio-check/)
 
-Funciona no navegador e no celular, sem instalar nada.
+Abre no navegador e no celular, sem instalar nada. Essa demonstração pública é
+isolada por dispositivo; para compartilhar a escala entre analista e fiscal, siga
+as instruções de **API local** acima.
 
 ## Rodar
 
 ```bash
 npm install
 npm run dev              # http://localhost:5173
-npm run dev -- --host    # abrir no celular, na mesma rede
+npm run dev -- --host    # disponibiliza o frontend na rede local
 ```
 
 Na tela de entrada, escolha um perfil:

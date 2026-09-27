@@ -67,6 +67,11 @@ await fi.goto(B + '/patio')
 await fi.waitForTimeout(900)
 const chipPendentes = fi.getByRole('button', { name: /^Pendentes/i })
 const pendentes0 = num(await chipPendentes.innerText())
+const chipTodos = fi.getByRole('button', { name: /^Todos/i })
+check('fiscal vê a escala completa na aba Todos',
+  await chipTodos.getAttribute('aria-pressed') === 'true'
+    && await fi.locator('ul > li').count() === num(await chipTodos.innerText()))
+await chipPendentes.click()
 await fi.locator('ul > li a').first().click()
 await fi.waitForTimeout(400)
 await fi.getByRole('button', { name: 'Tudo certo' }).click()

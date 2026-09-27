@@ -52,21 +52,28 @@ export function useSimulador() {
 export function useLiveData<T>(
   consulta: (ds: DataSource) => Promise<T>,
   deps: unknown[] = [],
-): { dados: T | undefined; recarregar: () => void } {
+): { dados: T | undefined; erro: string | undefined; recarregar: () => void } {
   const ds = useData()
   const [dados, setDados] = useState<T>()
+  const [erro, setErro] = useState<string>()
   const consultaRef = useRef(consulta)
   consultaRef.current = consulta
+  const consultaAtualRef = useRef(0)
 
   const [gatilho, setGatilho] = useState(0)
 
   useEffect(() => {
     let vivo = true
+    const consultaAtual = ++consultaAtualRef.current
+    setErro(undefined)
     void consultaRef.current(ds)
       .then((r) => {
-        if (vivo) setDados(r)
+        if (vivo && consultaAtual === consultaAtualRef.current) setDados(r)
       })
       .catch((erro: unknown) => {
+        if (!vivo || consultaAtual !== consultaAtualRef.current) return
+        const mensagem = erro instanceof Error ? erro.message : 'Falha ao carregar os dados.'
+        setErro(mensagem)
         console.error('Falha ao carregar dados do pátio:', erro)
       })
     return () => {
@@ -77,5 +84,5 @@ export function useLiveData<T>(
 
   useEffect(() => ds.subscribe(() => setGatilho((g) => g + 1)), [ds])
 
-  return { dados, recarregar: () => setGatilho((g) => g + 1) }
+  return { dados, erro, recarregar: () => setGatilho((g) => g + 1) }
 }

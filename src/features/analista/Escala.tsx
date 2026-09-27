@@ -16,7 +16,7 @@ import {
 } from '../shared/ui'
 
 export function Escala() {
-  const { dados: itens } = useLiveData((ds) => ds.listarItens(HOJE))
+  const { dados: itens, erro, recarregar } = useLiveData((ds) => ds.listarItens(HOJE))
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-4">
@@ -27,8 +27,8 @@ export function Escala() {
         </p>
       </header>
 
-      <Importador />
-      <DriverAvulso />
+      <Importador aoSalvar={recarregar} />
+      <DriverAvulso aoSalvar={recarregar} />
 
       <Cartao>
         <TituloSecao
@@ -36,7 +36,12 @@ export function Escala() {
         >
           Drivers escalados
         </TituloSecao>
-        {!itens || itens.length === 0 ? (
+        {erro ? (
+          <div role="alert" className="flex flex-wrap items-center justify-between gap-3 p-5 text-sm text-sinal">
+            <span>Não foi possível carregar a escala: {erro}</span>
+            <Botao variante="neutro" onClick={recarregar}>Tentar novamente</Botao>
+          </div>
+        ) : !itens || itens.length === 0 ? (
           <Vazio titulo="Escala vazia" acao="Suba a planilha do dia para começar." />
         ) : (
           <Tabela itens={itens} />
@@ -46,7 +51,7 @@ export function Escala() {
   )
 }
 
-function Importador() {
+function Importador({ aoSalvar }: { aoSalvar: () => void }) {
   const ds = useData()
   const { usuario } = useSessao()
   const [previa, setPrevia] = useState<PreviaImportacao>()
@@ -77,6 +82,7 @@ function Importador() {
       await ds.importarPlanilha({ data: HOJE, linhas, usuarioId: usuario.id })
       setPrevia(undefined)
       setMensagem(`${linhas.length} drivers importados de ${nomeArquivo}.`)
+      aoSalvar()
     } catch (erro) {
       setErroImportacao(true)
       setMensagem(erro instanceof Error ? erro.message : 'Não foi possível importar a escala.')
@@ -214,7 +220,7 @@ const VAZIO = {
   turno: 'manha' as Turno,
 }
 
-function DriverAvulso() {
+function DriverAvulso({ aoSalvar }: { aoSalvar: () => void }) {
   const ds = useData()
   const { usuario } = useSessao()
   const [aberto, setAberto] = useState(false)
@@ -249,6 +255,7 @@ function DriverAvulso() {
       rota: form.rota,
       turno: form.turno,
     })
+    aoSalvar()
     setForm(VAZIO)
     setAberto(false)
   }

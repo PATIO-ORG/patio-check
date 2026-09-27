@@ -1,8 +1,13 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { MockDataSource, placaValida } from './MockDataSource'
 import { criarEstadoInicial, isoDia } from './seed'
 
 const HOJE = isoDia(0)
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+  localStorage.clear()
+})
 
 function novo() {
   return new MockDataSource(criarEstadoInicial())
@@ -175,6 +180,32 @@ describe('fluxo de check-in e bloqueio', () => {
 })
 
 describe('escala', () => {
+  it('persiste a escala mesmo quando BroadcastChannel não está disponível', async () => {
+    vi.stubGlobal('BroadcastChannel', undefined)
+    localStorage.clear()
+
+    const ds = new MockDataSource()
+    await ds.importarPlanilha({
+      data: HOJE,
+      usuarioId: 'u-analista-1',
+      linhas: [{
+        linha: 1,
+        driverId: 'SPX90001',
+        nome: 'Ana Paula Ribeiro',
+        veiculoModelo: 'Fiat Fiorino',
+        veiculoCor: 'Branco',
+        placa: 'RJK4E12',
+        rota: 'A-07',
+        turno: 'manha',
+        erros: [],
+      }],
+    })
+
+    const recarregado = new MockDataSource()
+    const itens = await recarregado.listarItens(HOJE)
+    expect(itens.some(({ motorista }) => motorista.driverId === 'SPX90001')).toBe(true)
+  })
+
   it('driver avulso entra na lista do fiscal marcado como avulso', async () => {
     const ds = novo()
     const antes = (await ds.listarItens(HOJE)).length
