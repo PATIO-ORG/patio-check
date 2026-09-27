@@ -29,6 +29,7 @@ export interface LinhaValidada extends LinhaPlanilha {
 export interface PreviaImportacao {
   validas: LinhaValidada[]
   invalidas: LinhaValidada[]
+  erro?: string
 }
 
 export interface DivergenciaReportada {
@@ -107,6 +108,7 @@ export interface DataSource {
   }): Promise<void>
 
   removerItem(input: { usuarioId: string; escalaItemId: string }): Promise<void>
+  removerItensDoDia(input: { usuarioId: string; data: string }): Promise<number>
 
   registrarCheckin(input: {
     escalaItemId: string

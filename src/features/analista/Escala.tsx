@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSessao } from '../../auth/sessao'
-import { HOJE, useData, useLiveData } from '../../data/provider'
+import { HOJE, useData, useLiveData, useReportarErroDados } from '../../data/provider'
 import type { LinhaValidada, PreviaImportacao } from '../../data/DataSource'
 import type { ItemDetalhado, Turno } from '../../domain/types'
 import { placaValida } from '../../data/mock/MockDataSource'
@@ -19,9 +19,28 @@ type EstadoImportacao = { alvo: number; inicio: number; nomeArquivo: string } | 
 type Tema = 'claro' | 'escuro'
 
 export function Escala() {
+  const ds = useData()
+  const { usuario } = useSessao()
   const { dados: itens } = useLiveData((ds) => ds.listarItens(HOJE))
   const [importacao, setImportacao] = useState<EstadoImportacao>(null)
   const [tema, setTema] = useState<Tema>('claro')
+  const [erroRemocao, setErroRemocao] = useState('')
+
+  async function removerTodos() {
+    if (!usuario || !itens?.length) return
+    if (!confirm(`Remover todos os ${itens.length} drivers da escala de hoje? Esta ação não pode ser desfeita.`)) {
+      return
+    }
+
+    setErroRemocao('')
+    try {
+      await ds.removerItensDoDia({ usuarioId: usuario.id, data: HOJE })
+    } catch (erro) {
+      setErroRemocao(
+        `Não foi possível remover os drivers: ${erro instanceof Error ? erro.message : String(erro)}`,
+      )
+    }
+  }
 
   return (
     <div
@@ -54,10 +73,28 @@ export function Escala() {
       <Cartao>
         <TituloSecao
           icone={<IconeCaminhoes />}
-          acao={<ContadorDrivers total={itens?.length ?? 0} importacao={importacao} />}
+          acao={
+            <div className="flex items-center gap-3">
+              {(itens?.length ?? 0) > 0 && (
+                <button
+                  type="button"
+                  onClick={() => void removerTodos()}
+                  className="rotulo text-brita hover:text-sinal"
+                >
+                  Remover todos
+                </button>
+              )}
+              <ContadorDrivers total={itens?.length ?? 0} importacao={importacao} />
+            </div>
+          }
         >
           Drivers escalados
         </TituloSecao>
+        {erroRemocao && (
+          <p role="alert" className="px-5 pb-3 text-sm font-semibold text-sinal">
+            {erroRemocao}
+          </p>
+        )}
         {!itens || itens.length === 0 ? (
           <Vazio titulo="Escala vazia" acao="Suba a planilha do dia para começar." />
         ) : (
@@ -185,15 +222,21 @@ function Importador({
   const [previa, setPrevia] = useState<PreviaImportacao>()
   const [nomeArquivo, setNomeArquivo] = useState('')
   const [mensagem, setMensagem] = useState('')
+  const [erroImportacao, setErroImportacao] = useState('')
   const [arrastando, setArrastando] = useState(false)
   const [lendo, setLendo] = useState(false)
 
   async function lerArquivo(arquivo: File) {
     setMensagem('')
+    setErroImportacao('')
     setNomeArquivo(arquivo.name)
     setLendo(true)
     try {
       setPrevia(await ds.previsualizarPlanilha(await arquivo.text()))
+    } catch (erro) {
+      setErroImportacao(
+        `Não foi possível ler a planilha: ${erro instanceof Error ? erro.message : String(erro)}`,
+      )
     } finally {
       setLendo(false)
     }
@@ -203,13 +246,20 @@ function Importador({
     if (!usuario) return
     onIniciarImportacao(linhas.length, nomeArquivo)
     const tempoMinimo = new Promise((resolve) => setTimeout(resolve, 700))
-    await Promise.all([
-      ds.importarPlanilha({ data: HOJE, linhas, usuarioId: usuario.id }),
-      tempoMinimo,
-    ])
-    onImportacaoConcluida()
-    setPrevia(undefined)
-    setMensagem(`${linhas.length} drivers importados de ${nomeArquivo}.`)
+    try {
+      await Promise.all([
+        ds.importarPlanilha({ data: HOJE, linhas, usuarioId: usuario.id }),
+        tempoMinimo,
+      ])
+      setPrevia(undefined)
+      setMensagem(`${linhas.length} drivers importados de ${nomeArquivo}.`)
+    } catch (erro) {
+      setErroImportacao(
+        `Não foi possível importar a planilha: ${erro instanceof Error ? erro.message : String(erro)}`,
+      )
+    } finally {
+      onImportacaoConcluida()
+    }
   }
 
   return (
@@ -264,7 +314,7 @@ function Importador({
                 {lendo ? 'Lendo arquivo…' : 'Escolher arquivo CSV da escala'}
               </span>
               <span className="mt-0.5 block text-[13px] text-brita">
-                Colunas: ID, nome, veículo, cor, placa, rota, turno. Nada é gravado antes da conferência.
+                CSV com ID, nome, veículo, cor, placa, rota e turno. Linhas de instrução antes do cabeçalho são ignoradas.
               </span>
             </span>
           </span>
@@ -290,8 +340,19 @@ function Importador({
           </p>
         )}
 
+        {erroImportacao && (
+          <p role="alert" className="mt-3 rounded-chip bg-sinal-fraca px-4 py-2.5 text-sm font-semibold text-sinal">
+            {erroImportacao}
+          </p>
+        )}
+
         {previa && (
           <div className="mt-4">
+            {previa.erro && (
+              <p role="alert" className="mb-3 rounded-chip bg-sinal-fraca px-4 py-2.5 text-sm font-semibold text-sinal">
+                {previa.erro}
+              </p>
+            )}
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
               <p className="font-display text-[15px] font-bold">Conferência de {nomeArquivo}</p>
               <span className="rotulo text-liberado">{previa.validas.length} prontas</span>
@@ -396,21 +457,25 @@ function DriverAvulso() {
     if (!/^[A-Za-z]-\d{2}$/.test(form.rota)) return setErro('Rota fora do padrão (ex.: A-15).')
 
     setErro('')
-    await ds.adicionarItemAvulso({
-      data: HOJE,
-      usuarioId: usuario.id,
-      motorista: {
-        driverId: form.driverId.toUpperCase(),
-        nome: form.nome.trim(),
-        veiculoModelo: form.veiculoModelo || 'Não informado',
-        veiculoCor: form.veiculoCor || '—',
-        placa: form.placa.toUpperCase().replace(/[^A-Z0-9]/g, ''),
-      },
-      rota: form.rota,
-      turno: form.turno,
-    })
-    setForm(VAZIO)
-    setAberto(false)
+    try {
+      await ds.adicionarItemAvulso({
+        data: HOJE,
+        usuarioId: usuario.id,
+        motorista: {
+          driverId: form.driverId.toUpperCase(),
+          nome: form.nome.trim(),
+          veiculoModelo: form.veiculoModelo || 'Não informado',
+          veiculoCor: form.veiculoCor || '—',
+          placa: form.placa.toUpperCase().replace(/[^A-Z0-9]/g, ''),
+        },
+        rota: form.rota,
+        turno: form.turno,
+      })
+      setForm(VAZIO)
+      setAberto(false)
+    } catch (error) {
+      setErro(`Não foi possível adicionar o motorista: ${error instanceof Error ? error.message : String(error)}`)
+    }
   }
 
   return (
@@ -482,6 +547,7 @@ function Rotulado({ texto, children }: { texto: string; children: React.ReactNod
 function Tabela({ itens }: { itens: ItemDetalhado[] }) {
   const ds = useData()
   const { usuario } = useSessao()
+  const reportarErro = useReportarErroDados()
 
   return (
     <div className="overflow-x-auto">
@@ -527,7 +593,7 @@ function Tabela({ itens }: { itens: ItemDetalhado[] }) {
                   onClick={() => {
                     if (!usuario) return
                     if (confirm(`Remover ${motorista.nome} da escala de hoje?`)) {
-                      void ds.removerItem({ usuarioId: usuario.id, escalaItemId: item.id })
+                      void ds.removerItem({ usuarioId: usuario.id, escalaItemId: item.id }).catch(reportarErro)
                     }
                   }}
                   className="rotulo text-brita hover:text-sinal"

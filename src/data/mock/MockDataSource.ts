@@ -33,7 +33,112 @@ const TURNOS_VALIDOS: Record<string, Turno> = {
 
 const PLACA_MERCOSUL = /^[A-Z]{3}\d[A-Z]\d{2}$/
 const PLACA_ANTIGA = /^[A-Z]{3}-?\d{4}$/
-const ROTA = /^[A-Z]-\d{2}$/
+const ROTA = /^[A-Z]-\d{1,2}$/
+const SEPARADORES_CSV = [',', ';', '\t']
+
+interface IndicesCabecalho {
+  driverId?: number
+  nome?: number
+  veiculoModelo?: number
+  veiculoCor?: number
+  placa?: number
+  rota?: number
+  turno?: number
+  horario?: number
+}
+
+const CAMPOS_CABECALHO: Record<string, keyof IndicesCabecalho> = {
+  driver: 'driverId',
+  driver_id: 'driverId',
+  id: 'driverId',
+  id_do_driver: 'driverId',
+  codigo: 'driverId',
+  nome: 'nome',
+  nome_do_motorista: 'nome',
+  driver_escalado: 'nome',
+  motorista: 'nome',
+  veiculo: 'veiculoModelo',
+  veiculo_modelo: 'veiculoModelo',
+  modelo: 'veiculoModelo',
+  tipo: 'veiculoModelo',
+  cor: 'veiculoCor',
+  veiculo_cor: 'veiculoCor',
+  placa: 'placa',
+  rota: 'rota',
+  letra: 'rota',
+  turno: 'turno',
+  horario: 'horario',
+  hora: 'horario',
+}
+
+function normalizarCabecalho(valor: string): string {
+  return valor
+    .replace(/^\uFEFF/, '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+}
+
+function separarColunasCsv(linha: string, separador: string): string[] {
+  const colunas: string[] = []
+  let valor = ''
+  let entreAspas = false
+
+  for (let i = 0; i < linha.length; i++) {
+    const caractere = linha[i]
+    if (caractere === '"') {
+      if (entreAspas && linha[i + 1] === '"') {
+        valor += '"'
+        i++
+      } else {
+        entreAspas = !entreAspas
+      }
+    } else if (caractere === separador && !entreAspas) {
+      colunas.push(valor.trim())
+      valor = ''
+    } else {
+      valor += caractere
+    }
+  }
+
+  colunas.push(valor.trim())
+  return colunas
+}
+
+function identificarCabecalho(linha: string) {
+  for (const separador of SEPARADORES_CSV) {
+    const indices: IndicesCabecalho = {}
+    separarColunasCsv(linha, separador).forEach((coluna, indice) => {
+      const campo = CAMPOS_CABECALHO[normalizarCabecalho(coluna)]
+      if (campo && indices[campo] === undefined) indices[campo] = indice
+    })
+
+    if (
+      indices.driverId !== undefined &&
+      indices.nome !== undefined &&
+      indices.veiculoModelo !== undefined &&
+      indices.placa !== undefined &&
+      indices.rota !== undefined &&
+      (indices.turno !== undefined || indices.horario !== undefined)
+    ) {
+      return { separador, indices }
+    }
+  }
+  return undefined
+}
+
+function turnoDoHorario(horario: string): Turno | undefined {
+  const correspondencia = /^(\d{1,2}):([0-5]\d)$/.exec(horario)
+  if (!correspondencia) return undefined
+  const hora = Number(correspondencia[1])
+  if (hora > 23) return undefined
+  if (hora < 12) return 'manha'
+  if (hora < 18) return 'tarde'
+  return 'noite'
+}
 
 export function normalizarPlaca(v: string): string {
   return v.toUpperCase().replace(/[^A-Z0-9]/g, '')
@@ -155,47 +260,76 @@ export class MockDataSource implements DataSource {
   }
 
   async previsualizarPlanilha(csv: string): Promise<PreviaImportacao> {
-    const linhas = csv
-      .split(/\r?\n/)
-      .map((l) => l.trim())
-      .filter(Boolean)
-    if (linhas.length === 0) return { validas: [], invalidas: [] }
-
-    const cabecalho = linhas[0].toLowerCase()
-    const temCabecalho = cabecalho.includes('driver') || cabecalho.includes('placa')
-    const corpo = temCabecalho ? linhas.slice(1) : linhas
+    const linhas = csv.split(/\r?\n/)
+    const indiceCabecalho = linhas.findIndex((linha) => Boolean(identificarCabecalho(linha)))
+    const cabecalho = indiceCabecalho < 0
+      ? undefined
+      : identificarCabecalho(linhas[indiceCabecalho])
+    if (!cabecalho) {
+      return {
+        validas: [],
+        invalidas: [],
+        erro: 'Formato CSV não reconhecido. O cabeçalho deve conter ID do driver, nome, veículo, placa, rota e turno.',
+      }
+    }
 
     const vistos = new Set<string>()
-    const validadas: LinhaValidada[] = corpo.map((linhaTexto, idx) => {
-      const col = linhaTexto.split(/[;,\t]/).map((c) => c.trim())
-      const [driverId = '', nome = '', veiculoModelo = '', veiculoCor = '', placa = '', rota = '', turno = ''] = col
+    const validadas: LinhaValidada[] = []
+    for (let indice = indiceCabecalho + 1; indice < linhas.length; indice++) {
+      if (!linhas[indice].trim()) continue
+      const col = separarColunasCsv(linhas[indice], cabecalho.separador)
+      const valor = (campo: keyof IndicesCabecalho) => {
+        const posicao = cabecalho.indices[campo]
+        return posicao === undefined ? '' : col[posicao] ?? ''
+      }
+      const horario = valor('horario')
+      const turnoInformado = valor('turno').toLowerCase()
+      const driverId = valor('driverId')
+      const nome = valor('nome')
+      const veiculoModelo = valor('veiculoModelo')
+      const veiculoCor = valor('veiculoCor')
+      const placa = valor('placa')
+      const rota = valor('rota')
+      if (![driverId, nome, veiculoModelo, veiculoCor, placa, rota].some((valor) => valor)) {
+        continue
+      }
+
       const erros: string[] = []
 
-      if (col.length < 6) erros.push(`Esperadas 7 colunas, encontradas ${col.length}`)
-      if (!/^SPX\d{4,6}$/i.test(driverId)) erros.push('ID do driver fora do padrão SPXxxxxx')
+      if (!/^(?:SPX\d{4,6}|\d{4,10})$/i.test(driverId)) erros.push('ID do driver inválido')
       if (nome.length < 3) erros.push('Nome ausente ou curto demais')
       if (!veiculoModelo) erros.push('Modelo do veículo ausente')
       if (!placaValida(placa)) erros.push('Placa inválida')
       if (!ROTA.test(rota.toUpperCase())) erros.push('Rota fora do padrão (ex: A-15)')
-      if (!TURNOS_VALIDOS[turno.toLowerCase()]) erros.push('Turno deve ser manha, tarde ou noite')
+      const turno = turnoInformado
+        ? TURNOS_VALIDOS[turnoInformado]
+        : turnoDoHorario(horario)
+      if (!turno) erros.push('Turno inválido: informe manha, tarde ou noite, ou um horário válido')
 
       const chave = driverId.toUpperCase()
       if (chave && vistos.has(chave)) erros.push('ID do driver repetido na planilha')
       vistos.add(chave)
 
-      return {
-        linha: idx + (temCabecalho ? 2 : 1),
+      validadas.push({
+        linha: indice + 1,
         driverId: driverId.toUpperCase(),
         nome,
         veiculoModelo,
         veiculoCor,
         placa: normalizarPlaca(placa),
         rota: rota.toUpperCase(),
-        turno: turno.toLowerCase(),
+        turno: turno ?? '',
         erros,
-      }
-    })
+      })
+    }
 
+    if (validadas.length === 0) {
+      return {
+        validas: [],
+        invalidas: [],
+        erro: 'Nenhum motorista foi encontrado após o cabeçalho da planilha.',
+      }
+    }
     return {
       validas: validadas.filter((l) => l.erros.length === 0),
       invalidas: validadas.filter((l) => l.erros.length > 0),
@@ -322,17 +456,32 @@ export class MockDataSource implements DataSource {
     this.notificar()
   }
 
-  async removerItem(input: { usuarioId: string; escalaItemId: string }) {
-    const idx = this.estado.itens.findIndex((i) => i.id === input.escalaItemId)
-    if (idx < 0) return
+  private removerEscalaItem(usuarioId: string, escalaItemId: string): boolean {
+    const idx = this.estado.itens.findIndex((i) => i.id === escalaItemId)
+    if (idx < 0) return false
     const [removido] = this.estado.itens.splice(idx, 1)
     const motorista = this.estado.motoristas.find((m) => m.id === removido.motoristaId)
-    this.log(input.usuarioId, 'escala.item_removido', 'escala_item', removido.id, {
+    this.log(usuarioId, 'escala.item_removido', 'escala_item', removido.id, {
       driverId: motorista?.driverId,
       nome: motorista?.nome,
       rota: removido.rota,
     })
+    return true
+  }
+
+  async removerItem(input: { usuarioId: string; escalaItemId: string }) {
+    if (!this.removerEscalaItem(input.usuarioId, input.escalaItemId)) return
     this.notificar()
+  }
+
+  async removerItensDoDia(input: { usuarioId: string; data: string }): Promise<number> {
+    const itens = this.itensDoDia(input.data)
+    let removidos = 0
+    for (const item of itens) {
+      if (this.removerEscalaItem(input.usuarioId, item.id)) removidos++
+    }
+    if (removidos > 0) this.notificar()
+    return removidos
   }
 
   async registrarCheckin(input: {

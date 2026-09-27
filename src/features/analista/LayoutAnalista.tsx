@@ -1,6 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useSessao } from '../../auth/sessao'
-import { HOJE, reiniciarDemonstracao, useLiveData, useSimulador } from '../../data/provider'
+import { HOJE, MODO_DEMONSTRACAO, reiniciarDemonstracao, useLiveData, useSimulador } from '../../data/provider'
 import { podeEditarEscala } from '../../domain/status'
 import { dataExtensa } from '../shared/ui'
 
@@ -52,7 +52,8 @@ export function LayoutAnalista() {
           ))}
         </ul>
 
-        <div className="mt-auto hidden border-t border-asfalto-3 p-4 lg:block">
+        {MODO_DEMONSTRACAO && (
+          <div className="mt-auto hidden border-t border-asfalto-3 p-4 lg:block">
           <button
             onClick={alternar}
             className={`rotulo flex w-full items-center justify-between gap-2 rounded-chip border px-3 py-2.5 transition-colors ${
@@ -75,21 +76,24 @@ export function LayoutAnalista() {
           >
             Reiniciar demonstração
           </button>
-        </div>
+          </div>
+        )}
       </nav>
 
       <div className="min-w-0 flex-1 bg-concreto">
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-linha bg-concreto-2 px-5 py-3">
           <p className="rotulo text-brita">{dataExtensa(HOJE)}</p>
           <div className="flex items-center gap-3">
-            <button
-              onClick={alternar}
-              className={`rotulo rounded-chip border px-3 py-1.5 lg:hidden ${
-                rodando ? 'border-demarcacao text-demarcacao-escura' : 'border-linha text-brita'
-              }`}
-            >
-              Simulador {rodando ? 'ligado' : 'desligado'}
-            </button>
+            {MODO_DEMONSTRACAO && (
+              <button
+                onClick={alternar}
+                className={`rotulo rounded-chip border px-3 py-1.5 lg:hidden ${
+                  rodando ? 'border-demarcacao text-demarcacao-escura' : 'border-linha text-brita'
+                }`}
+              >
+                Simulador {rodando ? 'ligado' : 'desligado'}
+              </button>
+            )}
             <span className="text-sm font-semibold">{usuario?.nome}</span>
             <button onClick={sair} className="rotulo text-brita hover:text-asfalto">
               Sair

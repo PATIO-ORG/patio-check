@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { HOJE, useLiveData } from '../../data/provider'
 import type { AcaoAuditavel } from '../../domain/types'
-import { USUARIOS } from '../../data/mock/seed'
 import { Cartao, TituloSecao, Vazio, dataHora } from '../shared/ui'
 
 const ROTULO_ACAO: Record<AcaoAuditavel, { texto: string; cor: string }> = {
@@ -18,6 +17,7 @@ const ROTULO_ACAO: Record<AcaoAuditavel, { texto: string; cor: string }> = {
 export function Auditoria() {
   const [usuarioId, setUsuarioId] = useState('')
   const [data, setData] = useState(HOJE)
+  const { dados: usuarios } = useLiveData((ds) => ds.listarUsuarios())
   const { dados: logs } = useLiveData(
     (ds) => ds.listarAuditoria({ data, usuarioId: usuarioId || undefined }),
     [data, usuarioId],
@@ -51,7 +51,7 @@ export function Auditoria() {
             className="rounded-chip border border-linha bg-white px-3 py-2 text-sm"
           >
             <option value="">Todos</option>
-            {USUARIOS.map((u) => (
+            {(usuarios ?? []).map((u) => (
               <option key={u.id} value={u.id}>
                 {u.nome}
               </option>

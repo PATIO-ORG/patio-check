@@ -53,14 +53,19 @@ function CartaoAlerta({ alerta }: { alerta: AlertaAberto }) {
     if (!usuario) return
     setErro('')
     setEnviando(true)
-    const r = await ds.resolverBloqueio({
-      irregularidadeId: alerta.irregularidadeId,
-      usuarioId: usuario.id,
-      decisao,
-      justificativa,
-    })
-    setEnviando(false)
-    if (!r.ok) setErro(r.erro)
+    try {
+      const r = await ds.resolverBloqueio({
+        irregularidadeId: alerta.irregularidadeId,
+        usuarioId: usuario.id,
+        decisao,
+        justificativa,
+      })
+      if (!r.ok) setErro(r.erro)
+    } catch (error) {
+      setErro(`Não foi possível resolver o alerta: ${error instanceof Error ? error.message : String(error)}`)
+    } finally {
+      setEnviando(false)
+    }
   }
 
   return (
