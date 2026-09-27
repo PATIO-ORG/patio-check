@@ -46,15 +46,15 @@ await an.setInputFiles('input[type=file]', {
   name: 'escala-exemplo.csv', mimeType: 'text/csv', buffer: Buffer.from(csv),
 })
 await an.waitForTimeout(600)
-check('prévia mostra 7 linhas prontas', await an.locator('text=7 prontas').isVisible())
+check('prévia mostra 3 linhas prontas', await an.locator('text=3 prontas').isVisible())
 check('prévia recusa 1 linha com erro', await an.locator('text=1 com erro').isVisible())
-check('erro aponta a linha 8 da planilha', (await an.locator('text=linha 8').count()) > 0)
+check('erro aponta a linha 7 da planilha', (await an.locator('text=linha 7').count()) > 0)
 check('nada é gravado antes de confirmar', num(await contador.innerText()) === antesImport)
 
-await an.getByRole('button', { name: /Importar 7 drivers/ }).click()
+await an.getByRole('button', { name: /Importar 3 drivers/ }).click()
 await an.waitForTimeout(700)
 const depoisImport = num(await contador.innerText())
-check('importação soma exatamente as 7 linhas válidas', depoisImport === antesImport + 7,
+check('importação soma exatamente as 3 linhas válidas', depoisImport === antesImport + 3,
   `${antesImport} → ${depoisImport}`)
 
 // --- 2. Fiscal confere um driver; a aba do analista fica aberta o tempo todo
@@ -208,6 +208,19 @@ const alturaBotao = await (async () => {
   return (await fi.getByRole('button', { name: 'Tudo certo' }).boundingBox()).height
 })()
 check('botão principal do fiscal tem alvo de toque grande', alturaBotao >= 44, `${Math.round(alturaBotao)}px`)
+
+// --- 14. Remover todos os drivers da escala de uma vez
+await an.goto(B + '/escala')
+await an.waitForTimeout(800)
+const contadorEscala = an.locator('section', { hasText: 'Drivers escalados' }).locator('text=/^\\d+ drivers$/').first()
+const quantidadeAntesDaRemocao = num(await contadorEscala.innerText())
+const confirmacaoRemocao = an.waitForEvent('dialog').then((dialog) => dialog.accept())
+await an.getByRole('button', { name: 'Remover todos' }).click()
+await confirmacaoRemocao
+await an.waitForTimeout(500)
+check('remoção em lote limpa a escala inteira',
+  num(await contadorEscala.innerText()) === 0,
+  `${quantidadeAntesDaRemocao} → ${num(await contadorEscala.innerText())}`)
 
 await browser.close()
 console.log('\nerros de console/página:', erros.length ? erros.slice(0, 8) : 'nenhum')

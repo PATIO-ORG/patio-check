@@ -50,16 +50,21 @@ export function ReportarDivergencia() {
       return
     }
     setEnviando(true)
-    const r = await ds.registrarCheckin({
-      escalaItemId: item.id,
-      fiscalId: usuario.id,
-      resultado: 'irregular',
-      observacao: observacao.trim() || undefined,
-      divergencias,
-    })
-    setEnviando(false)
-    if (!r.ok) setErro(r.erro)
-    else navegar('/patio')
+    try {
+      const r = await ds.registrarCheckin({
+        escalaItemId: item.id,
+        fiscalId: usuario.id,
+        resultado: 'irregular',
+        observacao: observacao.trim() || undefined,
+        divergencias,
+      })
+      if (!r.ok) setErro(r.erro)
+      else navegar('/patio')
+    } catch (error) {
+      setErro(`Não foi possível enviar a divergência: ${error instanceof Error ? error.message : String(error)}`)
+    } finally {
+      setEnviando(false)
+    }
   }
 
   function alternarOutro(tipo: TipoIrregularidade) {

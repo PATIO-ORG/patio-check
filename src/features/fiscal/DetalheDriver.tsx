@@ -34,14 +34,19 @@ export function DetalheDriver() {
   async function confirmar() {
     if (!usuario) return
     setEnviando(true)
-    const r = await ds.registrarCheckin({
-      escalaItemId: item.id,
-      fiscalId: usuario.id,
-      resultado: 'conforme',
-    })
-    setEnviando(false)
-    if (!r.ok) setErro(r.erro)
-    else navegar('/patio')
+    try {
+      const r = await ds.registrarCheckin({
+        escalaItemId: item.id,
+        fiscalId: usuario.id,
+        resultado: 'conforme',
+      })
+      if (!r.ok) setErro(r.erro)
+      else navegar('/patio')
+    } catch (error) {
+      setErro(`Não foi possível registrar o check-in: ${error instanceof Error ? error.message : String(error)}`)
+    } finally {
+      setEnviando(false)
+    }
   }
 
   return (

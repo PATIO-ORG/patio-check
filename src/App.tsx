@@ -13,8 +13,11 @@ import { Relatorios } from './features/analista/Relatorios'
 import { Auditoria } from './features/analista/Auditoria'
 
 export function App() {
-  const { usuario } = useSessao()
+  const { usuario, carregando } = useSessao()
 
+  if (carregando) {
+    return <main className="grid min-h-dvh place-items-center bg-concreto text-brita">Carregando sessão…</main>
+  }
   if (!usuario) return <Login />
 
   if (usuario.papel === 'fiscal') {

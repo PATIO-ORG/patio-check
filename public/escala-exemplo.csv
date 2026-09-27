@@ -1,9 +1,7 @@
+Relatório operacional - informações antes da tabela
+Unidade;expedição;data;referência
 driver_id;nome;veiculo;cor;placa;rota;turno
 SPX90001;Ana Paula Ribeiro;Fiat Fiorino;Branco;RJK4E12;A-07;manha
-SPX90002;Bruno Tavares Lima;Renault Kangoo;Prata;PQD7H45;A-08;manha
-SPX90003;Caio Ferreira Mendes;Hyundai HR;Branco;LTM2B09;B-03;tarde
-SPX90004;Débora Nunes Castro;VW Saveiro;Cinza;FGH5J21;B-11;tarde
-SPX90005;Eduardo Pinto Rocha;Iveco Daily;Branco;XZV9K66;C-02;noite
-SPX90006;Fabiana Reis Coutinho;Fiat Strada;Vermelho;BNM3P84;C-14;manha
-SPX9000;Gustavo Sem Placa;;;;;
-SPX90008;Helena Duarte Vaz;Kia Bongo;Branco;TRE6L30;D-05;tarde
+SPX90002;Bruno Tavares Lima;Renault Kangoo;Prata;PQD7H45;B-03;tarde
+SPX90003;Caio Ferreira Mendes;Hyundai HR;Branco;LTM2B09;C-14;noite
+;Motorista sem ID;Moto;Branco;FGH5J21;A-04;manha

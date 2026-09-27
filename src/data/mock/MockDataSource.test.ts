@@ -17,23 +17,87 @@ describe('placaValida', () => {
 describe('previsualizarPlanilha', () => {
   const ds = novo()
 
-  it('separa linhas válidas das inválidas sem importar nada', async () => {
+  it('ignora as linhas iniciais e lê um CSV comum separado por ponto e vírgula', async () => {
     const csv = [
+      'DIVISÃO DE TAREFAS,,,,,,,,',
+      'FISCAL DE PÁTIO,,,,,,,,',
       'driver_id;nome;veiculo;cor;placa;rota;turno',
-      'SPX90001;Ana Paula Ribeiro;Fiat Fiorino;Branco;RJK4E12;A-07;manha',
-      'XX1;;;;;;',
+      'SPX90001;"Ana; Paula Ribeiro";Fiat Fiorino;Branco;RJK4E12;A-07;manha',
+      'SPX90002;Bruno Tavares Lima;Renault Kangoo;Prata;PQD7H45;B-03;tarde',
+      ';Motorista sem ID;Moto;Branco;FGH5J21;C-04;noite',
     ].join('\n')
 
     const previa = await ds.previsualizarPlanilha(csv)
-    expect(previa.validas).toHaveLength(1)
+    expect(previa.erro).toBeUndefined()
+    expect(previa.validas).toHaveLength(2)
     expect(previa.invalidas).toHaveLength(1)
     expect(previa.invalidas[0].erros.length).toBeGreaterThan(0)
-    expect(previa.invalidas[0].linha).toBe(3)
+    expect(previa.invalidas[0].linha).toBe(6)
+    expect(previa.validas[0]).toMatchObject({
+      driverId: 'SPX90001',
+      nome: 'Ana; Paula Ribeiro',
+      veiculoModelo: 'Fiat Fiorino',
+      veiculoCor: 'Branco',
+      rota: 'A-07',
+      turno: 'manha',
+    })
+  })
+
+  it('lê CSV separado por vírgulas com cabeçalho e turno derivados do horário', async () => {
+    const previa = await ds.previsualizarPlanilha([
+      'DIVISÃO DE TAREFAS,,,,',
+      'Horário,Letra,ID,Driver Escalado,Tipo,Placa',
+      '06:00,A-1,1324707,Ana Paula Ribeiro,MOTO,RJK4E12',
+      '13:00,B-3,1324708,"Bruno Tavares, Lima",CARRO,PQD7H45',
+    ].join('\n'))
+
+    expect(previa.erro).toBeUndefined()
+    expect(previa.validas).toHaveLength(2)
+    expect(previa.validas[0]).toMatchObject({
+      driverId: '1324707',
+      nome: 'Ana Paula Ribeiro',
+      veiculoModelo: 'MOTO',
+      rota: 'A-1',
+      turno: 'manha',
+    })
+    expect(previa.validas[1]).toMatchObject({
+      nome: 'Bruno Tavares, Lima',
+      turno: 'tarde',
+    })
+  })
+
+  it('ignora linhas de horário sem dados de motorista na planilha de impressão', async () => {
+    const previa = await ds.previsualizarPlanilha([
+      'informação inicial,,,,,,,,',
+      'HORÁRIO,LETRA,ID,DRIVER ESCALADO,TIPO,PLACA,Validação,Column 9,Column 1',
+      '06:00,A-1,1324707,Ana Paula Ribeiro,MOTO,RJK4E12,,,Não chegou',
+      '08:15,,,,,,,,Não chegou',
+      '08:15,,,,,,,,Não chegou',
+    ].join('\n'))
+
+    expect(previa.erro).toBeUndefined()
+    expect(previa.validas).toHaveLength(1)
+    expect(previa.invalidas).toHaveLength(0)
+  })
+
+  it('recusa arquivos sem cabeçalho CSV de motoristas reconhecível', async () => {
+    const previa = await ds.previsualizarPlanilha([
+      'instruções;planilha;sem;colunas reconhecidas',
+      'apenas dados sem cabeçalho',
+    ].join('\n'))
+
+    expect(previa.erro).toMatch(/Formato CSV não reconhecido/)
+    expect(previa.validas).toHaveLength(0)
+    expect(previa.invalidas).toHaveLength(0)
   })
 
   it('aponta ID de driver repetido dentro do arquivo', async () => {
-    const linha = 'SPX90001;Ana Paula Ribeiro;Fiat Fiorino;Branco;RJK4E12;A-07;manha'
-    const previa = await ds.previsualizarPlanilha([linha, linha].join('\n'))
+    const linha = 'SPX90001,Ana Paula Ribeiro,Fiat Fiorino,Branco,RJK4E12,A-07,manha'
+    const previa = await ds.previsualizarPlanilha([
+      'driver_id,nome,veiculo,cor,placa,rota,turno',
+      linha,
+      linha,
+    ].join('\n'))
     expect(previa.invalidas[0].erros).toContain('ID do driver repetido na planilha')
   })
 })
@@ -174,6 +238,27 @@ describe('escala', () => {
     expect(depois).toHaveLength(antes + 1)
     expect(depois.at(-1)!.item.avulso).toBe(true)
     expect(depois.at(-1)!.item.status).toBe('aguardando')
+  })
+
+  it('remove todos os itens do dia de uma vez e registra cada remoção', async () => {
+    const estado = criarEstadoInicial()
+    const ds = new MockDataSource(estado)
+    const quantidade = (await ds.listarItens(HOJE)).length
+    const motoristasAntes = estado.motoristas.length
+    const checkinsAntes = estado.checkins.length
+
+    const removidos = await ds.removerItensDoDia({
+      usuarioId: 'u-analista-1',
+      data: HOJE,
+    })
+
+    expect(removidos).toBe(quantidade)
+    expect(await ds.listarItens(HOJE)).toHaveLength(0)
+    expect(estado.motoristas).toHaveLength(motoristasAntes)
+    expect(estado.checkins).toHaveLength(checkinsAntes)
+    expect(
+      estado.auditoria.filter((log) => log.acao === 'escala.item_removido'),
+    ).toHaveLength(quantidade)
   })
 
   it('toda ação relevante gera registro de auditoria com autor', async () => {

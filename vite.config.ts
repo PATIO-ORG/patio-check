@@ -4,8 +4,8 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig(({ command }) => ({
-  // Publicado no GitHub Pages sob /patio-check/. Em dev e nos testes continua na raiz.
-  base: command === 'build' ? '/patio-check/' : '/',
+  // GitHub Pages publica sob /patio-check/; Vercel e dev servem pela raiz.
+  base: command === 'build' && !process.env.VERCEL ? '/patio-check/' : '/',
   plugins: [react(), tailwindcss()],
   test: {
     environment: 'jsdom',
