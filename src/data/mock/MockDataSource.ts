@@ -23,6 +23,7 @@ import type {
 } from '../DataSource'
 import { isoDia, type EstadoMock } from './seed'
 import { abrirCanal, carregarEstado, salvarEstado } from './persistencia'
+import { normalizarPlaca, placaValida } from '../../domain/placa'
 
 const TURNOS_VALIDOS: Record<string, Turno> = {
   manha: 'manha',
@@ -31,8 +32,6 @@ const TURNOS_VALIDOS: Record<string, Turno> = {
   noite: 'noite',
 }
 
-const PLACA_MERCOSUL = /^[A-Z]{3}\d[A-Z]\d{2}$/
-const PLACA_ANTIGA = /^[A-Z]{3}-?\d{4}$/
 const ROTA = /^[A-Z]-\d{1,2}$/
 const SEPARADORES_CSV = [',', ';', '\t']
 
@@ -138,15 +137,6 @@ function turnoDoHorario(horario: string): Turno | undefined {
   if (hora < 12) return 'manha'
   if (hora < 18) return 'tarde'
   return 'noite'
-}
-
-export function normalizarPlaca(v: string): string {
-  return v.toUpperCase().replace(/[^A-Z0-9]/g, '')
-}
-
-export function placaValida(v: string): boolean {
-  const p = normalizarPlaca(v)
-  return PLACA_MERCOSUL.test(p) || PLACA_ANTIGA.test(p)
 }
 
 /**

@@ -3,7 +3,7 @@ import { useSessao } from '../../auth/sessao'
 import { HOJE, useData, useLiveData, useReportarErroDados } from '../../data/provider'
 import type { LinhaValidada, PreviaImportacao } from '../../data/DataSource'
 import type { ItemDetalhado, Turno } from '../../domain/types'
-import { placaValida } from '../../data/mock/MockDataSource'
+import { placaValida } from '../../domain/placa'
 import { Placa } from '../shared/Placa'
 import {
   Botao,
