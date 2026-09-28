@@ -21,6 +21,17 @@
   --color-ressalva-fraca: #fdf3e3;
   --color-placa-banda: #2c4c8c;
 
+  /* Tokens de tema: no claro (padrão) valem o mesmo que a cor "fixa" que
+     substituem. Só o painel do analista (.pc-analista) redefine estes no
+     tema escuro — ver bloco no fim do arquivo. O fiscal nunca entra nesse
+     escopo, então não muda. */
+  --color-ink: #1b1e24;
+  --color-superficie: #ffffff;
+  --color-sinal-ink: var(--color-sinal);
+  --color-liberado-ink: var(--color-liberado);
+  --color-ressalva-ink: var(--color-ressalva);
+  --color-demarcacao-escura-ink: var(--color-demarcacao-escura);
+
   --font-display: 'Archivo', system-ui, sans-serif;
   --font-sans: 'Public Sans', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
@@ -143,4 +154,33 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* .pc-analista declara color: var(--color-ink) para que o texto sem cor
+   explícita (a maioria) herde o tom certo em cada tema — sem isto, trocar só
+   as variáveis não muda nada porque a cor de <body> já ficou resolvida. */
+.pc-analista {
+  color: var(--color-ink);
+}
+
+/* Tema escuro do painel do analista. Escopo restrito de propósito: o fiscal
+   opera no sol e mantém um tema único e claro (ver CLAUDE.md). Isto só se
+   aplica dentro de .pc-analista — a barra de navegação (bg-asfalto) fica de
+   fora do escopo porque já é escura nos dois temas. */
+.pc-analista[data-tema='escuro'] {
+  color-scheme: dark;
+  --color-ink: #e9e7e1;
+  --color-concreto: #15181d;
+  --color-concreto-2: #1c2027;
+  --color-superficie: #232830;
+  --color-brita: #9aa1ad;
+  --color-brita-2: #838b96;
+  --color-linha: #2a2f38;
+  --color-sinal-fraca: #3a1a16;
+  --color-liberado-fraca: #123420;
+  --color-ressalva-fraca: #3a260d;
+  --color-sinal-ink: #ff8a75;
+  --color-liberado-ink: #34d399;
+  --color-ressalva-ink: #fb923c;
+  --color-demarcacao-escura-ink: #d1a83e;
 }

@@ -168,7 +168,7 @@ function Kpi({
   destaque?: 'atencao' | 'sinal'
 }) {
   const cor =
-    destaque === 'sinal' ? 'text-sinal' : destaque === 'atencao' ? 'text-demarcacao-escura' : ''
+    destaque === 'sinal' ? 'text-sinal-ink' : destaque === 'atencao' ? 'text-demarcacao-escura-ink' : ''
   return (
     <div>
       <dt className="rotulo text-brita">{rotulo}</dt>
@@ -186,7 +186,7 @@ function FeedAlertas({
     <Cartao className="flex max-h-[calc(100dvh-7rem)] flex-col overflow-hidden xl:sticky xl:top-5">
       <TituloSecao
         acao={
-          <Link to="/alertas" className="rotulo text-brita underline hover:text-asfalto">
+          <Link to="/alertas" className="rotulo text-brita underline hover:text-ink">
             Resolver
           </Link>
         }
@@ -197,7 +197,7 @@ function FeedAlertas({
           )}
           Alertas abertos
           {alertas && (
-            <span className="font-mono text-sinal">{alertas.length}</span>
+            <span className="font-mono text-sinal-ink">{alertas.length}</span>
           )}
         </span>
       </TituloSecao>
@@ -209,7 +209,7 @@ function FeedAlertas({
           {alertas.map((a) => (
             <li key={a.irregularidadeId} className="anim-alerta p-4">
               <div className="flex items-center justify-between gap-2">
-                <span className="rotulo rounded-full bg-sinal-fraca px-2 py-0.5 text-sinal">
+                <span className="rotulo rounded-full bg-sinal-fraca px-2 py-0.5 text-sinal-ink">
                   {ROTULO_TIPO[a.tipo]}
                 </span>
                 <span className="font-mono text-xs text-brita">{hora(a.em)}</span>
@@ -222,7 +222,7 @@ function FeedAlertas({
               {a.tipo === 'placa' ? (
                 <div className="mt-2.5 flex items-center gap-2">
                   <Placa valor={a.esperado} tamanho="sm" />
-                  <span className="font-display font-bold text-sinal" aria-hidden="true">
+                  <span className="font-display font-bold text-sinal-ink" aria-hidden="true">
                     ≠
                   </span>
                   <Placa valor={a.encontrado} tamanho="sm" diferenteDe={a.esperado} tom="alerta" />
@@ -230,7 +230,7 @@ function FeedAlertas({
               ) : (
                 <p className="mt-2 text-[13px]">
                   <span className="text-brita line-through">{a.esperado}</span>{' '}
-                  <span className="font-semibold text-sinal">→ {a.encontrado}</span>
+                  <span className="font-semibold text-sinal-ink">→ {a.encontrado}</span>
                 </p>
               )}
             </li>

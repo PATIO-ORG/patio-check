@@ -9,9 +9,9 @@ import type { ReactNode } from 'react'
 export const COR = {
   conforme: '#1f8a5b',
   irregular: '#d92d20',
-  eixo: '#9ca3af',
-  grade: '#e5e5e0',
-  tinta: '#1b1e24',
+  eixo: 'var(--color-brita)',
+  grade: 'var(--color-linha)',
+  tinta: 'var(--color-ink)',
 } as const
 
 export function Legenda({ itens }: { itens: { cor: string; rotulo: string }[] }) {
@@ -42,7 +42,7 @@ export function Dica({
 }) {
   if (!ativo) return null
   return (
-    <div className="rounded-chip border border-linha bg-white px-3 py-2 shadow-sm">
+    <div className="rounded-chip border border-linha bg-superficie px-3 py-2 shadow-sm">
       {titulo && <p className="rotulo mb-1.5 text-brita">{titulo}</p>}
       <ul className="flex flex-col gap-1">
         {linhas.map((l) => (

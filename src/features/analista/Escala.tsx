@@ -73,7 +73,7 @@ export function Escala() {
                 <button
                   type="button"
                   onClick={() => void removerTodos()}
-                  className="rotulo text-brita hover:text-sinal"
+                  className="rotulo text-brita hover:text-sinal-ink"
                 >
                   Remover todos
                 </button>
@@ -85,7 +85,7 @@ export function Escala() {
           Drivers escalados
         </TituloSecao>
         {erroRemocao && (
-          <p role="alert" className="px-5 pb-3 text-sm font-semibold text-sinal">
+          <p role="alert" className="px-5 pb-3 text-sm font-semibold text-sinal-ink">
             {erroRemocao}
           </p>
         )}
@@ -119,10 +119,10 @@ function ContadorDrivers({ total, importacao }: { total: number; importacao: Est
     const exibido = Math.min(importacao.alvo, Math.round(importacao.alvo * progresso))
     return (
       <div className="flex items-center gap-2.5 rounded-chip bg-asfalto/12 px-3 py-1.5">
-        <span className="anim-girar text-asfalto">
+        <span className="anim-girar text-ink">
           <IconeCarregando />
         </span>
-        <span className="font-mono text-sm font-bold text-asfalto">
+        <span className="font-mono text-sm font-bold text-ink">
           {exibido}/{importacao.alvo} drivers
         </span>
         <span className="rotulo text-brita">{(decorrido / 1000).toFixed(1)}s</span>
@@ -241,7 +241,7 @@ function Importador({
           <a
             href={`${import.meta.env.BASE_URL}escala-exemplo.csv`}
             download
-            className="rotulo flex items-center gap-1.5 text-brita underline decoration-linha underline-offset-2 hover:text-asfalto hover:decoration-asfalto"
+            className="rotulo flex items-center gap-1.5 text-brita underline decoration-linha underline-offset-2 hover:text-ink hover:decoration-ink"
           >
             <IconeDownload />
             Baixar modelo
@@ -305,14 +305,14 @@ function Importador({
         </label>
 
         {mensagem && (
-          <p className="anim-numero mt-3 flex items-center gap-2 rounded-chip bg-liberado-fraca px-4 py-2.5 text-sm font-semibold text-liberado">
+          <p className="anim-numero mt-3 flex items-center gap-2 rounded-chip bg-liberado-fraca px-4 py-2.5 text-sm font-semibold text-liberado-ink">
             <IconeCheck />
             {mensagem}
           </p>
         )}
 
         {erroImportacao && (
-          <p role="alert" className="mt-3 rounded-chip bg-sinal-fraca px-4 py-2.5 text-sm font-semibold text-sinal">
+          <p role="alert" className="mt-3 rounded-chip bg-sinal-fraca px-4 py-2.5 text-sm font-semibold text-sinal-ink">
             {erroImportacao}
           </p>
         )}
@@ -320,15 +320,15 @@ function Importador({
         {previa && (
           <div className="mt-4">
             {previa.erro && (
-              <p role="alert" className="mb-3 rounded-chip bg-sinal-fraca px-4 py-2.5 text-sm font-semibold text-sinal">
+              <p role="alert" className="mb-3 rounded-chip bg-sinal-fraca px-4 py-2.5 text-sm font-semibold text-sinal-ink">
                 {previa.erro}
               </p>
             )}
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
               <p className="font-display text-[15px] font-bold">Conferência de {nomeArquivo}</p>
-              <span className="rotulo text-liberado">{previa.validas.length} prontas</span>
+              <span className="rotulo text-liberado-ink">{previa.validas.length} prontas</span>
               {previa.invalidas.length > 0 && (
-                <span className="rotulo text-sinal">{previa.invalidas.length} com erro</span>
+                <span className="rotulo text-sinal-ink">{previa.invalidas.length} com erro</span>
               )}
             </div>
 
@@ -342,7 +342,7 @@ function Importador({
                     <li key={l.linha} className="flex flex-wrap gap-x-3 gap-y-1 bg-sinal-fraca px-3 py-2 text-[13px]">
                       <span className="font-mono font-bold">linha {l.linha}</span>
                       <span className="text-brita">{l.nome || l.driverId || '(vazia)'}</span>
-                      <span className="text-sinal">{l.erros.join(' · ')}</span>
+                      <span className="text-sinal-ink">{l.erros.join(' · ')}</span>
                     </li>
                   ))}
                 </ul>
@@ -492,7 +492,7 @@ function DriverAvulso() {
           </div>
 
           {erro && (
-            <p role="alert" className="mt-3 text-sm font-semibold text-sinal">
+            <p role="alert" className="mt-3 text-sm font-semibold text-sinal-ink">
               {erro}
             </p>
           )}
@@ -567,7 +567,7 @@ function Tabela({ itens }: { itens: ItemDetalhado[] }) {
                       void ds.removerItem({ usuarioId: usuario.id, escalaItemId: item.id }).catch(reportarErro)
                     }
                   }}
-                  className="rotulo text-brita hover:text-sinal"
+                  className="rotulo text-brita hover:text-sinal-ink"
                 >
                   Remover
                 </button>
