@@ -16,14 +16,12 @@ import {
 } from '../shared/ui'
 
 type EstadoImportacao = { alvo: number; inicio: number; nomeArquivo: string } | null
-type Tema = 'claro' | 'escuro'
 
 export function Escala() {
   const ds = useData()
   const { usuario } = useSessao()
   const { dados: itens } = useLiveData((ds) => ds.listarItens(HOJE))
   const [importacao, setImportacao] = useState<EstadoImportacao>(null)
-  const [tema, setTema] = useState<Tema>('claro')
   const [erroRemocao, setErroRemocao] = useState('')
 
   async function removerTodos() {
@@ -43,10 +41,7 @@ export function Escala() {
   }
 
   return (
-    <div
-      data-tema={tema}
-      className="pc-escala mx-auto flex max-w-5xl flex-col gap-4 rounded-2xl bg-concreto p-5 text-[var(--pc-ink)] transition-colors"
-    >
+    <div className="mx-auto flex max-w-5xl flex-col gap-4 rounded-2xl bg-concreto p-5 transition-colors">
       {importacao && <BarraImportacao estado={importacao} />}
 
       <header className="flex flex-wrap items-center justify-between gap-3">
@@ -61,7 +56,6 @@ export function Escala() {
             </p>
           </div>
         </div>
-        <SeletorTema tema={tema} onMudar={setTema} />
       </header>
 
       <Importador
@@ -101,29 +95,6 @@ export function Escala() {
           <Tabela itens={itens} />
         )}
       </Cartao>
-    </div>
-  )
-}
-
-function SeletorTema({ tema, onMudar }: { tema: Tema; onMudar: (t: Tema) => void }) {
-  const opcoes: { valor: Tema; rotulo: string; icone: React.ReactNode }[] = [
-    { valor: 'claro', rotulo: 'Claro', icone: <IconeSol /> },
-    { valor: 'escuro', rotulo: 'Escuro', icone: <IconeLua /> },
-  ]
-  return (
-    <div className="inline-flex shrink-0 rounded-chip border border-linha bg-concreto-2 p-1">
-      {opcoes.map((o) => (
-        <button
-          key={o.valor}
-          onClick={() => onMudar(o.valor)}
-          className={`flex items-center gap-1.5 rounded-[4px] px-3 py-1.5 font-display text-[13px] font-bold transition-colors ${
-            tema === o.valor ? 'bg-asfalto text-demarcacao' : 'text-brita hover:text-asfalto'
-          }`}
-        >
-          {o.icone}
-          {o.rotulo}
-        </button>
-      ))}
     </div>
   )
 }
@@ -669,23 +640,6 @@ function IconeCheck() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20 6 9 17l-5-5" />
-    </svg>
-  )
-}
-
-function IconeSol() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-      <circle cx="12" cy="12" r="4.5" />
-      <path d="M12 2.5v2.5M12 19v2.5M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2.5 12H5M19 12h2.5M4.2 19.8 6 18M18 6l1.8-1.8" />
-    </svg>
-  )
-}
-
-function IconeLua() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-      <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z" />
     </svg>
   )
 }
