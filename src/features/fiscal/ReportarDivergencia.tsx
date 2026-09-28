@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useSessao } from '../../auth/sessao'
 import { HOJE, useData, useLiveData } from '../../data/provider'
 import type { TipoIrregularidade } from '../../domain/types'
-import { normalizarPlaca } from '../../data/mock/MockDataSource'
+import { normalizarPlaca } from '../../domain/placa'
 import { Placa, PlacaComparada } from '../shared/Placa'
 import { Botao, ROTULO_TIPO } from '../shared/ui'
 

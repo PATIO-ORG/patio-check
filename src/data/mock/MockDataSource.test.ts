@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { MockDataSource, placaValida } from './MockDataSource'
+import { MockDataSource } from './MockDataSource'
 import { criarEstadoInicial, isoDia } from './seed'
 
 const HOJE = isoDia(0)
@@ -7,12 +7,6 @@ const HOJE = isoDia(0)
 function novo() {
   return new MockDataSource(criarEstadoInicial())
 }
-
-describe('placaValida', () => {
-  it('aceita padrão Mercosul', () => expect(placaValida('RJK4E12')).toBe(true))
-  it('aceita padrão antigo com hífen', () => expect(placaValida('ABC-1234')).toBe(true))
-  it('recusa lixo', () => expect(placaValida('12AB')).toBe(false))
-})
 
 describe('previsualizarPlanilha', () => {
   const ds = novo()

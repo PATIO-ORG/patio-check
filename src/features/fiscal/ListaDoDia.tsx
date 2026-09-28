@@ -7,6 +7,11 @@ import { CORES_STATUS, Rota, StatusPill, Vazio } from '../shared/ui'
 
 type Filtro = 'pendentes' | 'conferidos' | 'bloqueados' | 'todos'
 
+/** Ignora hífen e espaço na busca — é o que muda entre "RJK-4E12" e "RJK4E12". */
+function normalizarBusca(s: string): string {
+  return s.toLowerCase().replace(/[-\s]/g, '')
+}
+
 const FILTROS: { chave: Filtro; rotulo: string; status?: StatusItem[] }[] = [
   { chave: 'pendentes', rotulo: 'Pendentes', status: ['aguardando'] },
   { chave: 'bloqueados', rotulo: 'Bloqueados', status: ['bloqueado'] },
@@ -31,16 +36,17 @@ export function ListaDoDia() {
   }, [itens])
 
   const visiveis = useMemo(() => {
-    const termo = busca.trim().toLowerCase()
+    // Hífen e espaço somem dos dois lados: o fiscal digita a placa como está no
+    // veículo ("RJK-4E12", "rjk 4e12") e ela precisa achar o mesmo driver.
+    const termo = normalizarBusca(busca.trim())
     const status = FILTROS.find((f) => f.chave === filtro)?.status
     return (itens ?? [])
       .filter((d) => (status ? status.includes(d.item.status) : true))
       .filter((d) =>
         termo
-          ? [d.motorista.driverId, d.motorista.nome, d.motorista.placa, d.item.rota]
-              .join(' ')
-              .toLowerCase()
-              .includes(termo)
+          ? normalizarBusca(
+              [d.motorista.driverId, d.motorista.nome, d.motorista.placa, d.item.rota].join(' '),
+            ).includes(termo)
           : true,
       )
       .sort((a, b) => Number(b.item.avulso) - Number(a.item.avulso))
