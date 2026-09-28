@@ -4,14 +4,14 @@ import type { AcaoAuditavel } from '../../domain/types'
 import { Cartao, TituloSecao, Vazio, dataHora } from '../shared/ui'
 
 const ROTULO_ACAO: Record<AcaoAuditavel, { texto: string; cor: string }> = {
-  'escala.importada': { texto: 'Importou escala', cor: 'bg-concreto text-asfalto' },
+  'escala.importada': { texto: 'Importou escala', cor: 'bg-superficie text-ink' },
   'escala.item_adicionado': { texto: 'Adicionou driver', cor: 'bg-demarcacao text-asfalto' },
-  'escala.item_editado': { texto: 'Editou driver', cor: 'bg-concreto text-asfalto' },
-  'escala.item_removido': { texto: 'Removeu driver', cor: 'bg-concreto text-asfalto' },
-  'checkin.registrado': { texto: 'Conferiu driver', cor: 'bg-liberado-fraca text-liberado' },
-  'irregularidade.reportada': { texto: 'Reportou divergência', cor: 'bg-sinal-fraca text-sinal' },
-  'bloqueio.liberado': { texto: 'Liberou bloqueio', cor: 'bg-ressalva-fraca text-ressalva' },
-  'bloqueio.mantido': { texto: 'Manteve bloqueio', cor: 'bg-sinal-fraca text-sinal' },
+  'escala.item_editado': { texto: 'Editou driver', cor: 'bg-superficie text-ink' },
+  'escala.item_removido': { texto: 'Removeu driver', cor: 'bg-superficie text-ink' },
+  'checkin.registrado': { texto: 'Conferiu driver', cor: 'bg-liberado-fraca text-liberado-ink' },
+  'irregularidade.reportada': { texto: 'Reportou divergência', cor: 'bg-sinal-fraca text-sinal-ink' },
+  'bloqueio.liberado': { texto: 'Liberou bloqueio', cor: 'bg-ressalva-fraca text-ressalva-ink' },
+  'bloqueio.mantido': { texto: 'Manteve bloqueio', cor: 'bg-sinal-fraca text-sinal-ink' },
 }
 
 export function Auditoria() {
@@ -40,7 +40,7 @@ export function Auditoria() {
             value={data}
             max={HOJE}
             onChange={(e) => setData(e.target.value)}
-            className="rounded-chip border border-linha bg-white px-3 py-2 font-mono text-sm"
+            className="rounded-chip border border-linha bg-superficie px-3 py-2 font-mono text-sm"
           />
         </label>
         <label className="block">
@@ -48,7 +48,7 @@ export function Auditoria() {
           <select
             value={usuarioId}
             onChange={(e) => setUsuarioId(e.target.value)}
-            className="rounded-chip border border-linha bg-white px-3 py-2 text-sm"
+            className="rounded-chip border border-linha bg-superficie px-3 py-2 text-sm"
           >
             <option value="">Todos</option>
             {(usuarios ?? []).map((u) => (

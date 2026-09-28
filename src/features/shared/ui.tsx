@@ -14,19 +14,19 @@ export const CORES_STATUS: Record<
   liberado: {
     barra: 'bg-liberado',
     fundo: 'bg-liberado-fraca',
-    texto: 'text-liberado',
+    texto: 'text-liberado-ink',
     rotulo: 'Liberado',
   },
   bloqueado: {
     barra: 'bg-sinal',
     fundo: 'bg-sinal-fraca',
-    texto: 'text-sinal',
+    texto: 'text-sinal-ink',
     rotulo: 'Bloqueado',
   },
   liberado_com_ressalva: {
     barra: 'bg-ressalva',
     fundo: 'bg-ressalva-fraca',
-    texto: 'text-ressalva',
+    texto: 'text-ressalva-ink',
     rotulo: 'Ressalva',
   },
 }
@@ -72,8 +72,8 @@ export function Botao({
   const estilos = {
     primario: 'bg-asfalto text-concreto shadow-[0_2px_8px_-2px_rgba(27,30,36,0.45)] hover:bg-asfalto-2 disabled:bg-brita-2 disabled:shadow-none',
     perigo: 'bg-sinal text-white shadow-[0_2px_8px_-2px_rgba(192,39,27,0.45)] hover:brightness-110 disabled:bg-brita-2 disabled:shadow-none',
-    neutro: 'bg-white text-asfalto border border-linha hover:border-asfalto',
-    fantasma: 'text-brita hover:text-asfalto',
+    neutro: 'bg-superficie text-ink border border-linha hover:border-ink',
+    fantasma: 'text-brita hover:text-ink',
   }[variante]
 
   return (
@@ -129,7 +129,7 @@ export function TituloSecao({
 export function Vazio({ titulo, acao }: { titulo: string; acao?: string }) {
   return (
     <div className="px-5 py-12 text-center">
-      <p className="font-display text-base font-semibold text-asfalto">{titulo}</p>
+      <p className="font-display text-base font-semibold text-ink">{titulo}</p>
       {acao && <p className="mt-1.5 text-sm text-brita">{acao}</p>}
     </div>
   )

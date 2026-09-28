@@ -72,11 +72,11 @@ export function PlacaComparada({
         <span className="rotulo text-brita">Escala</span>
         <Placa valor={esperado} tamanho={tamanho} />
       </div>
-      <span className="self-end pb-2 font-display text-2xl font-bold text-sinal" aria-hidden="true">
+      <span className="self-end pb-2 font-display text-2xl font-bold text-sinal-ink" aria-hidden="true">
         ≠
       </span>
       <div className="flex flex-col gap-1.5">
-        <span className="rotulo text-sinal">No pátio</span>
+        <span className="rotulo text-sinal-ink">No pátio</span>
         <Placa valor={encontrado} tamanho={tamanho} diferenteDe={esperado} tom="alerta" />
       </div>
     </div>

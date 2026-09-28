@@ -16,14 +16,12 @@ import {
 } from '../shared/ui'
 
 type EstadoImportacao = { alvo: number; inicio: number; nomeArquivo: string } | null
-type Tema = 'claro' | 'escuro'
 
 export function Escala() {
   const ds = useData()
   const { usuario } = useSessao()
   const { dados: itens } = useLiveData((ds) => ds.listarItens(HOJE))
   const [importacao, setImportacao] = useState<EstadoImportacao>(null)
-  const [tema, setTema] = useState<Tema>('claro')
   const [erroRemocao, setErroRemocao] = useState('')
 
   async function removerTodos() {
@@ -43,10 +41,7 @@ export function Escala() {
   }
 
   return (
-    <div
-      data-tema={tema}
-      className="pc-escala mx-auto flex max-w-5xl flex-col gap-4 rounded-2xl bg-concreto p-5 text-[var(--pc-ink)] transition-colors"
-    >
+    <div className="mx-auto flex max-w-5xl flex-col gap-4 rounded-2xl bg-concreto p-5 transition-colors">
       {importacao && <BarraImportacao estado={importacao} />}
 
       <header className="flex flex-wrap items-center justify-between gap-3">
@@ -61,7 +56,6 @@ export function Escala() {
             </p>
           </div>
         </div>
-        <SeletorTema tema={tema} onMudar={setTema} />
       </header>
 
       <Importador
@@ -79,7 +73,7 @@ export function Escala() {
                 <button
                   type="button"
                   onClick={() => void removerTodos()}
-                  className="rotulo text-brita hover:text-sinal"
+                  className="rotulo text-brita hover:text-sinal-ink"
                 >
                   Remover todos
                 </button>
@@ -91,7 +85,7 @@ export function Escala() {
           Drivers escalados
         </TituloSecao>
         {erroRemocao && (
-          <p role="alert" className="px-5 pb-3 text-sm font-semibold text-sinal">
+          <p role="alert" className="px-5 pb-3 text-sm font-semibold text-sinal-ink">
             {erroRemocao}
           </p>
         )}
@@ -101,29 +95,6 @@ export function Escala() {
           <Tabela itens={itens} />
         )}
       </Cartao>
-    </div>
-  )
-}
-
-function SeletorTema({ tema, onMudar }: { tema: Tema; onMudar: (t: Tema) => void }) {
-  const opcoes: { valor: Tema; rotulo: string; icone: React.ReactNode }[] = [
-    { valor: 'claro', rotulo: 'Claro', icone: <IconeSol /> },
-    { valor: 'escuro', rotulo: 'Escuro', icone: <IconeLua /> },
-  ]
-  return (
-    <div className="inline-flex shrink-0 rounded-chip border border-linha bg-concreto-2 p-1">
-      {opcoes.map((o) => (
-        <button
-          key={o.valor}
-          onClick={() => onMudar(o.valor)}
-          className={`flex items-center gap-1.5 rounded-[4px] px-3 py-1.5 font-display text-[13px] font-bold transition-colors ${
-            tema === o.valor ? 'bg-asfalto text-demarcacao' : 'text-brita hover:text-asfalto'
-          }`}
-        >
-          {o.icone}
-          {o.rotulo}
-        </button>
-      ))}
     </div>
   )
 }
@@ -148,10 +119,10 @@ function ContadorDrivers({ total, importacao }: { total: number; importacao: Est
     const exibido = Math.min(importacao.alvo, Math.round(importacao.alvo * progresso))
     return (
       <div className="flex items-center gap-2.5 rounded-chip bg-asfalto/12 px-3 py-1.5">
-        <span className="anim-girar text-asfalto">
+        <span className="anim-girar text-ink">
           <IconeCarregando />
         </span>
-        <span className="font-mono text-sm font-bold text-asfalto">
+        <span className="font-mono text-sm font-bold text-ink">
           {exibido}/{importacao.alvo} drivers
         </span>
         <span className="rotulo text-brita">{(decorrido / 1000).toFixed(1)}s</span>
@@ -270,7 +241,7 @@ function Importador({
           <a
             href={`${import.meta.env.BASE_URL}escala-exemplo.csv`}
             download
-            className="rotulo flex items-center gap-1.5 text-brita underline decoration-linha underline-offset-2 hover:text-asfalto hover:decoration-asfalto"
+            className="rotulo flex items-center gap-1.5 text-brita underline decoration-linha underline-offset-2 hover:text-ink hover:decoration-ink"
           >
             <IconeDownload />
             Baixar modelo
@@ -334,14 +305,14 @@ function Importador({
         </label>
 
         {mensagem && (
-          <p className="anim-numero mt-3 flex items-center gap-2 rounded-chip bg-liberado-fraca px-4 py-2.5 text-sm font-semibold text-liberado">
+          <p className="anim-numero mt-3 flex items-center gap-2 rounded-chip bg-liberado-fraca px-4 py-2.5 text-sm font-semibold text-liberado-ink">
             <IconeCheck />
             {mensagem}
           </p>
         )}
 
         {erroImportacao && (
-          <p role="alert" className="mt-3 rounded-chip bg-sinal-fraca px-4 py-2.5 text-sm font-semibold text-sinal">
+          <p role="alert" className="mt-3 rounded-chip bg-sinal-fraca px-4 py-2.5 text-sm font-semibold text-sinal-ink">
             {erroImportacao}
           </p>
         )}
@@ -349,15 +320,15 @@ function Importador({
         {previa && (
           <div className="mt-4">
             {previa.erro && (
-              <p role="alert" className="mb-3 rounded-chip bg-sinal-fraca px-4 py-2.5 text-sm font-semibold text-sinal">
+              <p role="alert" className="mb-3 rounded-chip bg-sinal-fraca px-4 py-2.5 text-sm font-semibold text-sinal-ink">
                 {previa.erro}
               </p>
             )}
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
               <p className="font-display text-[15px] font-bold">Conferência de {nomeArquivo}</p>
-              <span className="rotulo text-liberado">{previa.validas.length} prontas</span>
+              <span className="rotulo text-liberado-ink">{previa.validas.length} prontas</span>
               {previa.invalidas.length > 0 && (
-                <span className="rotulo text-sinal">{previa.invalidas.length} com erro</span>
+                <span className="rotulo text-sinal-ink">{previa.invalidas.length} com erro</span>
               )}
             </div>
 
@@ -371,7 +342,7 @@ function Importador({
                     <li key={l.linha} className="flex flex-wrap gap-x-3 gap-y-1 bg-sinal-fraca px-3 py-2 text-[13px]">
                       <span className="font-mono font-bold">linha {l.linha}</span>
                       <span className="text-brita">{l.nome || l.driverId || '(vazia)'}</span>
-                      <span className="text-sinal">{l.erros.join(' · ')}</span>
+                      <span className="text-sinal-ink">{l.erros.join(' · ')}</span>
                     </li>
                   ))}
                 </ul>
@@ -521,7 +492,7 @@ function DriverAvulso() {
           </div>
 
           {erro && (
-            <p role="alert" className="mt-3 text-sm font-semibold text-sinal">
+            <p role="alert" className="mt-3 text-sm font-semibold text-sinal-ink">
               {erro}
             </p>
           )}
@@ -596,7 +567,7 @@ function Tabela({ itens }: { itens: ItemDetalhado[] }) {
                       void ds.removerItem({ usuarioId: usuario.id, escalaItemId: item.id }).catch(reportarErro)
                     }
                   }}
-                  className="rotulo text-brita hover:text-sinal"
+                  className="rotulo text-brita hover:text-sinal-ink"
                 >
                   Remover
                 </button>
@@ -669,23 +640,6 @@ function IconeCheck() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20 6 9 17l-5-5" />
-    </svg>
-  )
-}
-
-function IconeSol() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-      <circle cx="12" cy="12" r="4.5" />
-      <path d="M12 2.5v2.5M12 19v2.5M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2.5 12H5M19 12h2.5M4.2 19.8 6 18M18 6l1.8-1.8" />
-    </svg>
-  )
-}
-
-function IconeLua() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-      <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z" />
     </svg>
   )
 }

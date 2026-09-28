@@ -47,7 +47,7 @@ export function Relatorios() {
               onClick={() => setDias(p)}
               aria-pressed={dias === p}
               className={`rotulo rounded-chip px-3 py-2 transition-colors ${
-                dias === p ? 'bg-asfalto text-demarcacao' : 'bg-white text-brita ring-1 ring-linha'
+                dias === p ? 'bg-asfalto text-demarcacao' : 'bg-superficie text-brita ring-1 ring-linha'
               }`}
             >
               {p} dias
@@ -164,8 +164,8 @@ export function Relatorios() {
                   <td className="px-4 py-2">{d.rotulo}</td>
                   <td className="px-4 py-2 text-right">{d.escalados}</td>
                   <td className="px-4 py-2 text-right">{d.conferidos}</td>
-                  <td className="px-4 py-2 text-right text-sinal">{d.bloqueados}</td>
-                  <td className="px-4 py-2 text-right text-ressalva">{d.liberadosComRessalva}</td>
+                  <td className="px-4 py-2 text-right text-sinal-ink">{d.bloqueados}</td>
+                  <td className="px-4 py-2 text-right text-ressalva-ink">{d.liberadosComRessalva}</td>
                   <td className="px-4 py-2 text-right font-bold">{d.taxaConformidade}%</td>
                 </tr>
               ))}
@@ -190,7 +190,7 @@ function Total({
     <div>
       <p className="rotulo text-brita">{rotulo}</p>
       <p
-        className={`mt-1 font-display text-4xl font-extrabold tabular-nums ${destaque ? 'text-sinal' : ''}`}
+        className={`mt-1 font-display text-4xl font-extrabold tabular-nums ${destaque ? 'text-sinal-ink' : ''}`}
       >
         {valor}
       </p>

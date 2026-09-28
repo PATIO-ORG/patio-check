@@ -74,7 +74,7 @@ function CartaoAlerta({ alerta }: { alerta: AlertaAberto }) {
         acao={<span className="font-mono text-xs text-brita">{dataHora(alerta.em)}</span>}
       >
         <span className="flex items-center gap-2">
-          <span className="rotulo rounded-full bg-sinal-fraca px-2 py-0.5 text-sinal">
+          <span className="rotulo rounded-full bg-sinal-fraca px-2 py-0.5 text-sinal-ink">
             {ROTULO_TIPO[alerta.tipo]}
           </span>
           {alerta.motorista.nome}
@@ -101,12 +101,12 @@ function CartaoAlerta({ alerta }: { alerta: AlertaAberto }) {
               <p className="rotulo text-brita">Escala</p>
               <p className="mt-1 text-sm font-semibold">{alerta.esperado}</p>
             </div>
-            <span className="font-display text-xl font-bold text-sinal" aria-hidden="true">
+            <span className="font-display text-xl font-bold text-sinal-ink" aria-hidden="true">
               ≠
             </span>
             <div>
-              <p className="rotulo text-sinal">No pátio</p>
-              <p className="mt-1 text-sm font-semibold text-sinal">{alerta.encontrado}</p>
+              <p className="rotulo text-sinal-ink">No pátio</p>
+              <p className="mt-1 text-sm font-semibold text-sinal-ink">{alerta.encontrado}</p>
             </div>
           </div>
         )}
@@ -130,14 +130,14 @@ function CartaoAlerta({ alerta }: { alerta: AlertaAberto }) {
             onChange={(e) => setJustificativa(e.target.value)}
             rows={2}
             placeholder="O que foi verificado e por que você está decidindo assim."
-            className="mt-1.5 w-full resize-none rounded-chip border border-linha bg-white px-3 py-2.5 text-sm"
+            className="mt-1.5 w-full resize-none rounded-chip border border-linha bg-superficie px-3 py-2.5 text-sm"
           />
           <p className="mt-1 text-xs text-brita">
             Fica registrada com seu nome e horário. Mínimo de 10 caracteres.
           </p>
 
           {erro && (
-            <p role="alert" className="mt-2 text-sm font-semibold text-sinal">
+            <p role="alert" className="mt-2 text-sm font-semibold text-sinal-ink">
               {erro}
             </p>
           )}
