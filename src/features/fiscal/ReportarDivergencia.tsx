@@ -24,7 +24,6 @@ export function ReportarDivergencia() {
   const [placaEncontrada, setPlacaEncontrada] = useState('')
   const [outros, setOutros] = useState<Partial<Record<TipoIrregularidade, string>>>({})
   const [observacao, setObservacao] = useState('')
-  const [foto, setFoto] = useState('')
   const [erro, setErro] = useState('')
   const [enviando, setEnviando] = useState(false)
 
@@ -187,18 +186,6 @@ export function ReportarDivergencia() {
           rows={2}
           className="mt-1.5 w-full resize-none rounded-chip border border-linha bg-concreto-2 px-3 py-2.5 text-[15px]"
         />
-
-        <label className="rotulo mt-3 flex cursor-pointer items-center justify-between gap-3 rounded-chip border border-dashed border-brita-2 px-3 py-3 text-brita">
-          <span>{foto || 'Anexar foto'}</span>
-          <span aria-hidden="true">📷</span>
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="sr-only"
-            onChange={(e) => setFoto(e.target.files?.[0]?.name ?? '')}
-          />
-        </label>
       </section>
 
       {erro && (

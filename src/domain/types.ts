@@ -73,7 +73,6 @@ export interface Irregularidade {
   tipo: TipoIrregularidade
   esperado: string
   encontrado: string
-  fotoUrl?: string
 }
 
 export interface Liberacao {
