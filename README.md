@@ -80,7 +80,7 @@ os dados operacionais são compartilhados entre dispositivos e atualizados em te
 7. **Escala** → *Driver que entrou no meio do turno* → adicione um driver: ele
    aparece na lista do fiscal marcado como **Novo**, sem reimprimir nada.
 8. Em **Escala**, use **Remover todos** para limpar a escala do dia após confirmar.
-9. **Auditoria** → tudo o que você acabou de fazer está registrado, com autor e horário.
+9. **Histórico** → tudo o que você acabou de fazer está registrado, com autor e horário.
 10. **Relatórios** → 14 dias de histórico, gráficos e exportação em CSV.
 
 No modo de demonstração local, o painel do analista oferece **Simulador** (liga check-ins

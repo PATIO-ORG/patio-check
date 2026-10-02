@@ -37,7 +37,7 @@ export function LayoutAnalista() {
     ...(podeEditar ? [{ to: '/escala', rotulo: 'Escala' }] : []),
     { to: '/alertas', rotulo: 'Alertas', badge: alertas?.length },
     { to: '/relatorios', rotulo: 'Relatórios' },
-    { to: '/auditoria', rotulo: 'Auditoria' },
+    { to: '/auditoria', rotulo: 'Histórico' },
   ]
 
   return (

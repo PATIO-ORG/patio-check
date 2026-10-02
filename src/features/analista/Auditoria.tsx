@@ -26,7 +26,7 @@ export function Auditoria() {
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-4">
       <header>
-        <h1 className="font-display text-2xl font-extrabold">Auditoria</h1>
+        <h1 className="font-display text-2xl font-extrabold">Histórico</h1>
         <p className="mt-1 text-sm text-brita">
           Quem fez o quê, quando. Com vários analistas e vários fiscais, é o que fecha a conta.
         </p>
