@@ -106,7 +106,7 @@ export function ReportarDivergencia() {
             autoComplete="off"
             spellCheck={false}
             placeholder="ABC1D23"
-            className="mt-1.5 w-full rounded-chip border-2 border-asfalto bg-concreto-2 px-4 py-4 text-center font-mono text-3xl font-bold tracking-[0.2em] uppercase placeholder:text-brita-2"
+            className="mt-1.5 w-full rounded-chip border-2 border-asfalto bg-concreto-2 px-4 py-4 text-center font-display text-3xl font-bold tracking-[0.2em] uppercase placeholder:text-brita-2"
           />
 
           {placaDiverge && (

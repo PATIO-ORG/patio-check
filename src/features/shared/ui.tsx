@@ -56,6 +56,18 @@ export function StatusPill({ status }: { status: StatusItem }) {
   )
 }
 
+export function BotaoSair({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="rotulo shrink-0 rounded-chip border border-sair/60 bg-sair/25 px-3 py-1.5 text-[13px] transition-colors hover:border-sair hover:bg-sair/35"
+    >
+      Sair
+    </button>
+  )
+}
+
 export function LinkVoltar({ para, children }: { para: string; children: ReactNode }) {
   return (
     <Link
@@ -83,7 +95,7 @@ export function LinkVoltar({ para, children }: { para: string; children: ReactNo
 
 export function Rota({ valor }: { valor: string }) {
   return (
-    <span className="inline-block rounded-chip bg-asfalto px-2 py-1 font-mono text-[13px] font-bold tracking-[0.08em] whitespace-nowrap text-demarcacao">
+    <span className="inline-block rounded-chip bg-asfalto px-2 py-1 font-display text-[13px] font-bold tracking-[0.08em] whitespace-nowrap text-demarcacao">
       {valor}
     </span>
   )

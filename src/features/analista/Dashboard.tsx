@@ -22,7 +22,7 @@ export function Dashboard() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid gap-4 xl:grid-cols-[1fr_380px]">
+      <div className="grid gap-4 xl:grid-cols-[1fr_300px]">
         <div className="flex flex-col gap-4">
           <Cartao className="p-5">
             <div className="flex flex-wrap items-end gap-x-10 gap-y-5">
@@ -138,7 +138,7 @@ export function Dashboard() {
                         />
                       )}
                     />
-                    <Bar dataKey="total" radius={[0, 4, 4, 0]} label={{ position: 'right', fill: COR.tinta, fontSize: 12, fontFamily: 'JetBrains Mono, monospace' }}>
+                    <Bar dataKey="total" radius={[0, 4, 4, 0]} label={{ position: 'right', fill: COR.tinta, fontSize: 12, fontFamily: 'Archivo, sans-serif' }}>
                       {porTipo.map((d) => (
                         <Cell key={d.tipo} fill={COR.irregular} />
                       ))}
@@ -197,7 +197,7 @@ function FeedAlertas({
           )}
           Alertas abertos
           {alertas && (
-            <span className="font-mono text-sinal-ink">{alertas.length}</span>
+            <span className="font-display text-sinal-ink">{alertas.length}</span>
           )}
         </span>
       </TituloSecao>
@@ -212,10 +212,10 @@ function FeedAlertas({
                 <span className="rotulo rounded-full bg-sinal-fraca px-2 py-0.5 text-sinal-ink">
                   {ROTULO_TIPO[a.tipo]}
                 </span>
-                <span className="font-mono text-xs text-brita">{hora(a.em)}</span>
+                <span className="font-display text-xs text-brita">{hora(a.em)}</span>
               </div>
               <p className="mt-2 font-display text-sm font-bold leading-tight">{a.motorista.nome}</p>
-              <p className="mt-0.5 font-mono text-xs text-brita">
+              <p className="mt-0.5 font-display text-xs text-brita">
                 {a.motorista.driverId} · rota {a.rota} · {a.fiscalNome}
               </p>
 

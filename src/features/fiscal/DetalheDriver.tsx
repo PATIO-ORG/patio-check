@@ -57,7 +57,7 @@ export function DetalheDriver() {
         <div className={`flex items-center justify-between gap-3 px-4 py-2.5 ${cor.fundo}`}>
           <StatusPill status={item.status} />
           {detalhe.ultimoCheckin && (
-            <span className="font-mono text-xs text-brita">
+            <span className="font-display text-xs text-brita">
               Conferido {hora(detalhe.ultimoCheckin.em)}
             </span>
           )}
@@ -159,7 +159,7 @@ function Campo({ rotulo, valor, mono }: { rotulo: string; valor: string; mono?: 
   return (
     <div className="bg-white px-4 py-3">
       <dt className="rotulo text-brita">{rotulo}</dt>
-      <dd className={`mt-1 text-[15px] font-semibold ${mono ? 'font-mono' : ''}`}>{valor}</dd>
+      <dd className={`mt-1 text-[15px] font-semibold ${mono ? 'font-display' : ''}`}>{valor}</dd>
     </div>
   )
 }

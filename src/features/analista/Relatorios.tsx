@@ -158,7 +158,7 @@ export function Relatorios() {
                 <th className="px-4 py-2.5 text-right">Conformidade</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-linha font-mono tabular-nums">
+            <tbody className="divide-y divide-linha font-display tabular-nums">
               {[...serie].reverse().map((d) => (
                 <tr key={d.data}>
                   <td className="px-4 py-2">{d.rotulo}</td>

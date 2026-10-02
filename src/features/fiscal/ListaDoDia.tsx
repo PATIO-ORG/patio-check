@@ -61,7 +61,7 @@ export function ListaDoDia() {
           inputMode="search"
           placeholder="Buscar por placa, ID, nome ou rota"
           aria-label="Buscar driver"
-          className="w-full rounded-chip border-2 border-asfalto bg-white px-4 py-3.5 font-mono text-base tracking-wide placeholder:font-sans placeholder:tracking-normal placeholder:text-brita-2"
+          className="w-full rounded-chip border-2 border-asfalto bg-white px-4 py-3.5 font-display text-base tracking-wide placeholder:tracking-normal placeholder:text-brita-2"
         />
 
         <div className="mt-2.5 flex gap-1.5 overflow-x-auto pb-1">
@@ -124,7 +124,7 @@ function CartaoDriver({ detalhe }: { detalhe: ItemDetalhado }) {
           <p className="mt-1.5 truncate font-display text-[15px] font-bold leading-tight">
             {motorista.nome}
           </p>
-          <p className="mt-0.5 truncate font-mono text-xs text-brita">
+          <p className="mt-0.5 truncate font-display text-xs text-brita">
             {motorista.driverId} · {motorista.veiculoModelo} {motorista.veiculoCor}
           </p>
         </div>
