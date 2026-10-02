@@ -5,6 +5,7 @@ import type { LinhaValidada, PreviaImportacao } from '../../data/DataSource'
 import type { ItemDetalhado, Turno } from '../../domain/types'
 import { placaValida } from '../../domain/placa'
 import { Placa } from '../shared/Placa'
+import { lerPlanilhaComoCsv } from './lerPlanilha'
 import {
   Botao,
   Cartao,
@@ -225,7 +226,7 @@ function Importador({
     setNomeArquivo(arquivo.name)
     setLendo(true)
     try {
-      setPrevia(await ds.previsualizarPlanilha(await arquivo.text()))
+      setPrevia(await ds.previsualizarPlanilha(await lerPlanilhaComoCsv(arquivo)))
     } catch (erro) {
       setErroImportacao(
         `Não foi possível ler a planilha: ${erro instanceof Error ? erro.message : String(erro)}`,
@@ -304,10 +305,10 @@ function Importador({
             </span>
             <span>
               <span className="block font-display text-[15px] font-bold">
-                {lendo ? 'Lendo arquivo…' : 'Escolher arquivo CSV da escala'}
+                {lendo ? 'Lendo arquivo…' : 'Escolher arquivo CSV ou Excel da escala'}
               </span>
               <span className="mt-0.5 block text-[13px] text-brita">
-                CSV com ID, nome, veículo, cor, placa, rota e turno. Linhas de instrução antes do cabeçalho são ignoradas.
+                CSV ou Excel (.xlsx) com ID, nome, veículo, cor, placa, rota e turno. Linhas de instrução antes do cabeçalho são ignoradas.
               </span>
             </span>
           </span>
@@ -316,7 +317,7 @@ function Importador({
           </span>
           <input
             type="file"
-            accept=".csv,text/csv,text/plain"
+            accept=".csv,.xlsx,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             className="sr-only"
             onChange={(e) => {
               const f = e.target.files?.[0]
