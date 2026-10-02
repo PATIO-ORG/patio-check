@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useSessao } from '../../auth/sessao'
 import { HOJE, useData, useLiveData } from '../../data/provider'
 import { Placa, PlacaComparada } from '../shared/Placa'
-import { Botao, CORES_STATUS, ROTULO_TIPO, ROTULO_TURNO, Rota, StatusPill, hora } from '../shared/ui'
+import { Botao, CORES_STATUS, LinkVoltar, ROTULO_TIPO, ROTULO_TURNO, Rota, StatusPill, hora } from '../shared/ui'
 
 export function DetalheDriver() {
   const { itemId } = useParams()
@@ -51,9 +51,7 @@ export function DetalheDriver() {
 
   return (
     <div className="pb-40">
-      <Link to="/patio" className="rotulo mt-4 inline-block text-brita hover:text-asfalto">
-        ← Lista do dia
-      </Link>
+      <LinkVoltar para="/patio">Lista do dia</LinkVoltar>
 
       <div className={`mt-3 overflow-hidden rounded-lg border border-linha bg-white`}>
         <div className={`flex items-center justify-between gap-3 px-4 py-2.5 ${cor.fundo}`}>

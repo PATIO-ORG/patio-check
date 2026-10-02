@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import type { StatusItem, TipoIrregularidade, Turno } from '../../domain/types'
 
 export const CORES_STATUS: Record<
@@ -51,6 +52,31 @@ export function StatusPill({ status }: { status: StatusItem }) {
     <span className={`rotulo inline-block rounded-full px-2.5 py-1 ${c.fundo} ${c.texto}`}>
       {c.rotulo}
     </span>
+  )
+}
+
+export function LinkVoltar({ para, children }: { para: string; children: ReactNode }) {
+  return (
+    <Link
+      to={para}
+      className="rotulo -ml-2 mt-2 inline-flex min-h-11 max-w-full items-center gap-2 rounded-chip px-2 text-brita transition-colors hover:text-ink active:bg-asfalto/10"
+    >
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+        className="shrink-0"
+      >
+        <path d="M15 5l-7 7 7 7" />
+      </svg>
+      <span className="truncate">{children}</span>
+    </Link>
   )
 }
 
