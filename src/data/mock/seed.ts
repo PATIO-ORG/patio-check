@@ -94,15 +94,18 @@ export const USUARIOS: Usuario[] = [
 const FISCAIS = USUARIOS.filter((u) => u.papel === 'fiscal')
 const ANALISTAS = USUARIOS.filter((u) => u.papel === 'analista')
 
-const TIPOS: TipoIrregularidade[] = ['placa', 'veiculo', 'nome', 'id', 'ocupante']
+/** O histórico fictício só gera divergências apontadas à mão; "horário" é automático. */
+type TipoManual = Exclude<TipoIrregularidade, 'horario'>
+
+const TIPOS: TipoManual[] = ['placa', 'veiculo', 'nome', 'id', 'ocupante']
 /** Placa é de longe o caso mais comum no pátio — o peso reflete isso. */
-const TIPOS_PONDERADOS: TipoIrregularidade[] = [
+const TIPOS_PONDERADOS: TipoManual[] = [
   'placa', 'placa', 'placa', 'placa', 'placa', 'placa',
   'veiculo', 'veiculo', 'veiculo',
   'nome', 'id', 'ocupante',
 ]
 
-function adulterar(tipo: TipoIrregularidade, m: Motorista): { esperado: string; encontrado: string } {
+function adulterar(tipo: TipoManual, m: Motorista): { esperado: string; encontrado: string } {
   switch (tipo) {
     case 'placa': {
       const alt = m.placa.slice(0, 4) + LETRAS[int(0, 25)] + m.placa.slice(5)

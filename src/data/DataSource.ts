@@ -20,6 +20,8 @@ export interface LinhaPlanilha {
   placa: string
   rota: string
   turno: string
+  /** Onda de chegada (HH:MM), quando a planilha traz a coluna de horário. */
+  horario?: string
 }
 
 export interface LinhaValidada extends LinhaPlanilha {

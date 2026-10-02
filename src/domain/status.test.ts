@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { registrarCheckin, resolverBloqueio, podeEditarEscala } from './status'
+import { chegouForaDaOnda, registrarCheckin, resolverBloqueio, podeEditarEscala } from './status'
 
 describe('registrarCheckin', () => {
   it('libera o item quando o fiscal confirma que está tudo conforme', () => {
@@ -101,5 +101,46 @@ describe('podeEditarEscala', () => {
 
   it('nega ao fiscal', () => {
     expect(podeEditarEscala('fiscal')).toBe(false)
+  })
+})
+
+describe('chegouForaDaOnda', () => {
+  // Brasília é UTC-3: 09:00Z = 06:00 BRT.
+  const chegada = (hhmmBrasilia: string) => {
+    const [h, m] = hhmmBrasilia.split(':').map(Number)
+    return new Date(Date.UTC(2026, 9, 2, h + 3, m))
+  }
+
+  it('dentro da janela: na hora exata da onda', () => {
+    expect(chegouForaDaOnda('06:00', chegada('06:00'))).toBe(false)
+  })
+
+  it('dentro da janela: no limite da tolerância', () => {
+    expect(chegouForaDaOnda('06:00', chegada('06:15'))).toBe(false)
+  })
+
+  it('um pouco fora: logo depois da tolerância', () => {
+    expect(chegouForaDaOnda('06:00', chegada('06:16'))).toBe(true)
+    expect(chegouForaDaOnda('06:00', chegada('06:20'))).toBe(true)
+  })
+
+  it('muito fora: três horas depois', () => {
+    expect(chegouForaDaOnda('06:00', chegada('09:00'))).toBe(true)
+  })
+
+  it('chegar antes da onda não é irregularidade', () => {
+    expect(chegouForaDaOnda('06:00', chegada('05:30'))).toBe(false)
+    expect(chegouForaDaOnda('06:00', chegada('04:00'))).toBe(false)
+  })
+
+  it('usa o horário de Brasília, não o UTC', () => {
+    expect(chegouForaDaOnda('06:00', new Date(Date.UTC(2026, 9, 2, 9, 5)))).toBe(false)
+    expect(chegouForaDaOnda('06:00', new Date(Date.UTC(2026, 9, 2, 12, 0)))).toBe(true)
+  })
+
+  it('horário escalado ausente ou inválido não bloqueia ninguém', () => {
+    expect(chegouForaDaOnda('', chegada('12:00'))).toBe(false)
+    expect(chegouForaDaOnda('manhã', chegada('12:00'))).toBe(false)
+    expect(chegouForaDaOnda('25:00', chegada('12:00'))).toBe(false)
   })
 })

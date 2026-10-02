@@ -41,7 +41,7 @@ export function DetalheDriver() {
         resultado: 'conforme',
       })
       if (!r.ok) setErro(r.erro)
-      else navegar('/patio')
+      else if (r.status !== 'bloqueado') navegar('/patio')
     } catch (error) {
       setErro(`Não foi possível registrar o check-in: ${error instanceof Error ? error.message : String(error)}`)
     } finally {
