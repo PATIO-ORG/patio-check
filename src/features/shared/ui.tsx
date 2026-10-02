@@ -38,6 +38,7 @@ export const ROTULO_TIPO: Record<TipoIrregularidade, string> = {
   nome: 'Nome',
   id: 'ID do driver',
   ocupante: 'Ocupante',
+  horario: 'Fora do horário',
 }
 
 export const ROTULO_TURNO: Record<Turno, string> = {

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { MockDataSource } from './MockDataSource'
 import { criarEstadoInicial, isoDia } from './seed'
 
@@ -208,6 +208,94 @@ describe('fluxo de check-in e bloqueio', () => {
       justificativa: 'Achei que estava tudo certo.',
     })
     expect(r.ok).toBe(false)
+  })
+})
+
+describe('check-in fora do horário escalado', () => {
+  let ds: MockDataSource
+
+  // Brasília é UTC-3: 12:00Z = 09:00 BRT.
+  const as = (hhmmBrasilia: string) => {
+    const [h, m] = hhmmBrasilia.split(':').map(Number)
+    vi.setSystemTime(new Date(Date.UTC(2026, 9, 2, h + 3, m)))
+  }
+
+  async function importarDriver(horario: string) {
+    const csv = [
+      'HORÁRIO,LETRA,ID,DRIVER ESCALADO,TIPO,PLACA',
+      `${horario},A-1,123456,Fulano de Tal,FIORINO,RJK4E12`,
+    ].join('\n')
+    const previa = await ds.previsualizarPlanilha(csv)
+    await ds.importarPlanilha({ data: HOJE, linhas: previa.validas, usuarioId: 'u-analista-1' })
+    const itens = await ds.listarItens(HOJE)
+    return itens.find((i) => i.motorista.driverId === '123456')!.item
+  }
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    ds = novo()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('a importação guarda o horário da onda, normalizado para HH:MM', async () => {
+    const item = await importarDriver('6:00')
+    expect(item.horario).toBe('06:00')
+  })
+
+  it('dentro da janela, o conforme libera normalmente', async () => {
+    const item = await importarDriver('06:00')
+    as('06:10')
+    const r = await ds.registrarCheckin({ escalaItemId: item.id, fiscalId: 'u-fiscal-1', resultado: 'conforme' })
+    expect(r).toEqual({ ok: true, status: 'liberado' })
+  })
+
+  it('um pouco fora da janela, o conforme vira bloqueio automático', async () => {
+    const item = await importarDriver('06:00')
+    as('06:20')
+    const r = await ds.registrarCheckin({ escalaItemId: item.id, fiscalId: 'u-fiscal-1', resultado: 'conforme' })
+    expect(r).toEqual({ ok: true, status: 'bloqueado' })
+  })
+
+  it('muito fora: abre alerta de horário para o analista, sem o fiscal apontar nada', async () => {
+    const item = await importarDriver('06:00')
+    as('09:00')
+    await ds.registrarCheckin({ escalaItemId: item.id, fiscalId: 'u-fiscal-1', resultado: 'conforme' })
+
+    const alerta = (await ds.listarAlertasAbertos(HOJE)).find((a) => a.escalaItemId === item.id)
+    expect(alerta).toBeDefined()
+    expect(alerta).toMatchObject({ tipo: 'horario', esperado: '06:00', encontrado: '09:00' })
+  })
+
+  it('chegar cedo não bloqueia', async () => {
+    const item = await importarDriver('06:00')
+    as('05:30')
+    const r = await ds.registrarCheckin({ escalaItemId: item.id, fiscalId: 'u-fiscal-1', resultado: 'conforme' })
+    expect(r).toEqual({ ok: true, status: 'liberado' })
+  })
+
+  it('o analista resolve pela mesma fila, com justificativa', async () => {
+    const item = await importarDriver('06:00')
+    as('09:00')
+    await ds.registrarCheckin({ escalaItemId: item.id, fiscalId: 'u-fiscal-1', resultado: 'conforme' })
+    const alerta = (await ds.listarAlertasAbertos(HOJE)).find((a) => a.escalaItemId === item.id)!
+
+    const r = await ds.resolverBloqueio({
+      irregularidadeId: alerta.irregularidadeId,
+      usuarioId: 'u-analista-1',
+      decisao: 'liberado',
+      justificativa: 'Atraso causado por bloqueio na via, confirmado com o motorista.',
+    })
+    expect(r).toEqual({ ok: true, status: 'liberado_com_ressalva' })
+  })
+
+  it('item sem horário na escala (ex.: avulso ou planilha só com turno) não é checado por horário', async () => {
+    const [pendente] = ds.itensAguardando(HOJE)
+    as('09:00')
+    const r = await ds.registrarCheckin({ escalaItemId: pendente.id, fiscalId: 'u-fiscal-1', resultado: 'conforme' })
+    expect(r).toEqual({ ok: true, status: 'liberado' })
   })
 })
 

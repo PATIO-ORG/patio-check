@@ -42,6 +42,8 @@ export interface EscalaItem {
   motoristaId: string
   rota: string
   turno: Turno
+  /** Onda de chegada (HH:MM). Sem ela, o item não é checado por horário. */
+  horario?: string
   status: StatusItem
   adicionadoEm: string
   adicionadoPor: string
@@ -65,6 +67,7 @@ export type TipoIrregularidade =
   | 'nome'
   | 'id'
   | 'ocupante'
+  | 'horario'
 
 export interface Irregularidade {
   id: string

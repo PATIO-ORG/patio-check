@@ -1,4 +1,7 @@
 import {
+  chegouForaDaOnda,
+  horaEmBrasilia,
+  normalizarHorario,
   registrarCheckin as aplicarCheckin,
   resolverBloqueio as aplicarResolucao,
 } from '../../domain/status'
@@ -309,6 +312,7 @@ export class MockDataSource implements DataSource {
         placa: normalizarPlaca(placa),
         rota: rota.toUpperCase(),
         turno: turno ?? '',
+        horario: normalizarHorario(horario),
         erros,
       })
     }
@@ -371,6 +375,7 @@ export class MockDataSource implements DataSource {
       if (jaNaEscala) {
         jaNaEscala.rota = l.rota
         jaNaEscala.turno = TURNOS_VALIDOS[l.turno]
+        jaNaEscala.horario = l.horario
         continue
       }
       this.estado.itens.push({
@@ -379,6 +384,7 @@ export class MockDataSource implements DataSource {
         motoristaId: motorista.id,
         rota: l.rota,
         turno: TURNOS_VALIDOS[l.turno],
+        horario: l.horario,
         status: 'aguardando',
         adicionadoEm: agora,
         adicionadoPor: input.usuarioId,
@@ -484,32 +490,41 @@ export class MockDataSource implements DataSource {
     const item = this.estado.itens.find((i) => i.id === input.escalaItemId)
     if (!item) return { ok: false as const, erro: 'Item de escala não encontrado.' }
 
-    const transicao = aplicarCheckin(item.status, input.resultado)
+    const chegada = new Date()
+    const atrasado = chegouForaDaOnda(item.horario ?? '', chegada)
+    const resultado = atrasado ? 'irregular' : input.resultado
+    const transicao = aplicarCheckin(item.status, resultado)
     if (!transicao.ok) return transicao
 
     const motorista = this.estado.motoristas.find((m) => m.id === item.motoristaId)!
-    const agora = new Date().toISOString()
+    const agora = chegada.toISOString()
     const checkinId = novoId('chk')
+    const divergencias = [...(input.divergencias ?? [])]
+    if (atrasado && !divergencias.some((d) => d.tipo === 'horario')) {
+      divergencias.push({ tipo: 'horario', encontrado: horaEmBrasilia(chegada) })
+    }
 
     this.estado.checkins.push({
       id: checkinId,
       escalaItemId: item.id,
       fiscalId: input.fiscalId,
       em: agora,
-      resultado: input.resultado,
-      observacao: input.observacao,
+      resultado,
+      observacao:
+        input.observacao ?? (atrasado ? 'Chegada fora do horário escalado (registrado automaticamente).' : undefined),
     })
     this.log(input.fiscalId, 'checkin.registrado', 'escala_item', item.id, { status: item.status }, {
-      resultado: input.resultado,
+      resultado,
       status: transicao.status,
     })
 
-    for (const d of input.divergencias ?? []) {
+    for (const d of divergencias) {
       const esperado =
         d.tipo === 'placa' ? motorista.placa
         : d.tipo === 'veiculo' ? `${motorista.veiculoModelo} ${motorista.veiculoCor}`
         : d.tipo === 'nome' ? motorista.nome
         : d.tipo === 'id' ? motorista.driverId
+        : d.tipo === 'horario' ? (item.horario ?? '')
         : 'Somente o driver'
       const irregId = novoId('irr')
       this.estado.irregularidades.push({
