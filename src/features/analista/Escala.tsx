@@ -20,9 +20,16 @@ type EstadoImportacao = { alvo: number; inicio: number; nomeArquivo: string } | 
 export function Escala() {
   const ds = useData()
   const { usuario } = useSessao()
-  const { dados: itens } = useLiveData((ds) => ds.listarItens(HOJE))
+  const { dados: itens, recarregar } = useLiveData((ds) => ds.listarItens(HOJE))
   const [importacao, setImportacao] = useState<EstadoImportacao>(null)
+  const [atualizando, setAtualizando] = useState(false)
   const [erroRemocao, setErroRemocao] = useState('')
+
+  function atualizar() {
+    recarregar()
+    setAtualizando(true)
+    window.setTimeout(() => setAtualizando(false), 700)
+  }
 
   async function removerTodos() {
     if (!usuario || !itens?.length) return
@@ -79,6 +86,21 @@ export function Escala() {
                 </button>
               )}
               <ContadorDrivers total={itens?.length ?? 0} importacao={importacao} />
+              <button
+                type="button"
+                onClick={atualizar}
+                disabled={atualizando}
+                aria-label="Atualizar lista de drivers"
+                title="Atualizar lista"
+                className="flex size-8 items-center justify-center rounded-full border border-linha text-brita transition-colors hover:border-brita hover:text-ink disabled:cursor-default"
+              >
+                <span className={atualizando ? 'anim-girar' : ''}>
+                  <IconeAtualizar />
+                </span>
+              </button>
+              <span role="status" className="sr-only">
+                {atualizando ? 'Atualizando…' : ''}
+              </span>
             </div>
           }
         >
@@ -624,6 +646,15 @@ function IconePlanilha() {
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="3" width="18" height="18" rx="1.5" />
       <path d="M3 9h18M9 9v12" />
+    </svg>
+  )
+}
+
+function IconeAtualizar() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+      <path d="M21 3v5h-5" />
     </svg>
   )
 }
