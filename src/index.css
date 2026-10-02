@@ -5,6 +5,7 @@
   --color-asfalto: #1b1e24;
   --color-asfalto-2: #272b33;
   --color-asfalto-3: #3a3f4a;
+  --color-asfalto-0: #101216;
   --color-concreto: #edede8;
   --color-concreto-2: #f7f7f4;
   --color-brita: #6b7280;
@@ -20,6 +21,9 @@
   --color-ressalva: #b45309;
   --color-ressalva-fraca: #fdf3e3;
   --color-placa-banda: #2c4c8c;
+  /* Laranja só do botão Sair. Não reaproveita `ressalva`: laranja já significa
+     "liberado com ressalva" no sistema. */
+  --color-sair: #e08a33;
 
   /* Tokens de tema: no claro (padrão) valem o mesmo que a cor "fixa" que
      substituem. Só o painel do analista (.pc-analista) redefine estes no
@@ -75,7 +79,7 @@
 }
 
 @utility rotulo {
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: 0.6875rem;
   letter-spacing: 0.14em;
@@ -123,6 +127,15 @@
 
 @utility anim-numero {
   animation: entrada-numero 260ms ease-out;
+}
+
+@keyframes entrada-barra {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@utility anim-barra {
+  animation: entrada-barra 700ms ease-out;
 }
 
 @keyframes girar {

@@ -71,7 +71,7 @@ function CartaoAlerta({ alerta }: { alerta: AlertaAberto }) {
   return (
     <Cartao className="overflow-hidden border-l-4 border-l-sinal">
       <TituloSecao
-        acao={<span className="font-mono text-xs text-brita">{dataHora(alerta.em)}</span>}
+        acao={<span className="font-display text-xs text-brita">{dataHora(alerta.em)}</span>}
       >
         <span className="flex items-center gap-2">
           <span className="rotulo rounded-full bg-sinal-fraca px-2 py-0.5 text-sinal-ink">
@@ -85,7 +85,7 @@ function CartaoAlerta({ alerta }: { alerta: AlertaAberto }) {
         <div>
           <div className="flex items-center gap-2">
             <Rota valor={alerta.rota} />
-            <span className="font-mono text-sm text-brita">{alerta.motorista.driverId}</span>
+            <span className="font-display text-sm text-brita">{alerta.motorista.driverId}</span>
           </div>
           <p className="mt-2 text-sm text-brita">
             {alerta.motorista.veiculoModelo} {alerta.motorista.veiculoCor}

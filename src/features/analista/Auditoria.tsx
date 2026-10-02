@@ -40,7 +40,7 @@ export function Auditoria() {
             value={data}
             max={HOJE}
             onChange={(e) => setData(e.target.value)}
-            className="rounded-chip border border-linha bg-superficie px-3 py-2 font-mono text-sm"
+            className="rounded-chip border border-linha bg-superficie px-3 py-2 font-display text-sm"
           />
         </label>
         <label className="block">
@@ -62,7 +62,7 @@ export function Auditoria() {
 
       <Cartao>
         <TituloSecao
-          acao={<span className="font-mono text-sm text-brita">{logs?.length ?? 0} registros</span>}
+          acao={<span className="font-display text-sm text-brita">{logs?.length ?? 0} registros</span>}
         >
           Linha do tempo
         </TituloSecao>
@@ -75,10 +75,10 @@ export function Auditoria() {
               const a = ROTULO_ACAO[l.acao]
               return (
                 <li key={l.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3">
-                  <span className="font-mono text-xs text-brita">{dataHora(l.em)}</span>
+                  <span className="font-display text-xs text-brita">{dataHora(l.em)}</span>
                   <span className={`rotulo rounded-full px-2 py-0.5 ${a.cor}`}>{a.texto}</span>
                   <span className="text-sm font-semibold">{l.usuarioNome}</span>
-                  <span className="w-full font-mono text-xs text-brita sm:ml-auto sm:w-auto">
+                  <span className="w-full font-display text-xs text-brita sm:ml-auto sm:w-auto">
                     {resumirAlvo(l.depois) || l.entidadeId}
                   </span>
                 </li>

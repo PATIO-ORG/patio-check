@@ -55,7 +55,7 @@ export function Dica({
               />
             )}
             <span className="text-brita">{l.rotulo}</span>
-            <span className="ml-auto font-mono font-bold">{l.valor}</span>
+            <span className="ml-auto font-display font-bold">{l.valor}</span>
           </li>
         ))}
       </ul>
@@ -64,7 +64,7 @@ export function Dica({
 }
 
 export const EIXO = {
-  tick: { fill: COR.eixo, fontSize: 11, fontFamily: 'JetBrains Mono, monospace' },
+  tick: { fill: COR.eixo, fontSize: 11, fontFamily: 'Archivo, sans-serif' },
   axisLine: false,
   tickLine: false,
 } as const

@@ -145,7 +145,7 @@ function ContadorDrivers({ total, importacao }: { total: number; importacao: Est
         <span className="anim-girar text-ink">
           <IconeCarregando />
         </span>
-        <span className="font-mono text-sm font-bold text-ink">
+        <span className="font-display text-sm font-bold text-ink">
           {exibido}/{importacao.alvo} drivers
         </span>
         <span className="rotulo text-brita">{(decorrido / 1000).toFixed(1)}s</span>
@@ -154,7 +154,7 @@ function ContadorDrivers({ total, importacao }: { total: number; importacao: Est
   }
 
   return (
-    <span key={total} className="anim-numero font-mono text-sm font-bold text-brita">
+    <span key={total} className="anim-numero font-display text-sm font-bold text-brita">
       {total} drivers
     </span>
   )
@@ -363,7 +363,7 @@ function Importador({
                 <ul className="divide-y divide-linha">
                   {previa.invalidas.map((l) => (
                     <li key={l.linha} className="flex flex-wrap gap-x-3 gap-y-1 bg-sinal-fraca px-3 py-2 text-[13px]">
-                      <span className="font-mono font-bold">linha {l.linha}</span>
+                      <span className="font-display font-bold">linha {l.linha}</span>
                       <span className="text-brita">{l.nome || l.driverId || '(vazia)'}</span>
                       <span className="text-sinal-ink">{l.erros.join(' · ')}</span>
                     </li>
@@ -387,13 +387,13 @@ function Importador({
                   <tbody className="divide-y divide-linha">
                     {previa.validas.map((l) => (
                       <tr key={l.linha}>
-                        <td className="px-3 py-2 font-mono">{l.driverId}</td>
+                        <td className="px-3 py-2 font-display">{l.driverId}</td>
                         <td className="px-3 py-2">{l.nome}</td>
                         <td className="px-3 py-2 text-brita">
                           {l.veiculoModelo} {l.veiculoCor}
                         </td>
-                        <td className="px-3 py-2 font-mono">{l.placa}</td>
-                        <td className="px-3 py-2 font-mono">{l.rota}</td>
+                        <td className="px-3 py-2 font-display">{l.placa}</td>
+                        <td className="px-3 py-2 font-display">{l.rota}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -500,10 +500,10 @@ function DriverAvulso() {
               <input {...campo('veiculoCor')} placeholder="Branco" />
             </Rotulado>
             <Rotulado texto="Placa">
-              <input {...campo('placa')} placeholder="ABC1D23" className="w-full rounded-chip border border-linha bg-concreto-2 px-3 py-2.5 font-mono text-sm uppercase" />
+              <input {...campo('placa')} placeholder="ABC1D23" className="w-full rounded-chip border border-linha bg-concreto-2 px-3 py-2.5 font-display text-sm uppercase" />
             </Rotulado>
             <Rotulado texto="Rota">
-              <input {...campo('rota')} placeholder="A-15" className="w-full rounded-chip border border-linha bg-concreto-2 px-3 py-2.5 font-mono text-sm uppercase" />
+              <input {...campo('rota')} placeholder="A-15" className="w-full rounded-chip border border-linha bg-concreto-2 px-3 py-2.5 font-display text-sm uppercase" />
             </Rotulado>
             <Rotulado texto="Turno">
               <select {...campo('turno')}>
@@ -565,7 +565,7 @@ function Tabela({ itens }: { itens: ItemDetalhado[] }) {
               </td>
               <td className="px-4 py-2.5">
                 <span className="font-semibold">{motorista.nome}</span>
-                <span className="ml-2 font-mono text-xs text-brita">{motorista.driverId}</span>
+                <span className="ml-2 font-display text-xs text-brita">{motorista.driverId}</span>
                 {item.avulso && (
                   <span className="rotulo ml-2 rounded-full bg-asfalto px-1.5 py-0.5 text-demarcacao">
                     Novo
