@@ -96,7 +96,6 @@ function mapIrregularidade(row: DbIrregularidade) {
   return {
     id: row.id, checkinId: row.checkin_id, escalaItemId: row.escala_item_id,
     tipo: row.tipo, esperado: row.esperado, encontrado: row.encontrado,
-    ...(row.foto_url ? { fotoUrl: row.foto_url } : {}),
   }
 }
 
