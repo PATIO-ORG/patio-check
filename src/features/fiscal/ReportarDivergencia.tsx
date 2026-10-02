@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useSessao } from '../../auth/sessao'
 import { HOJE, useData, useLiveData } from '../../data/provider'
 import type { TipoIrregularidade } from '../../domain/types'
 import { normalizarPlaca } from '../../domain/placa'
 import { Placa, PlacaComparada } from '../shared/Placa'
-import { Botao, ROTULO_TIPO } from '../shared/ui'
+import { Botao, LinkVoltar, ROTULO_TIPO } from '../shared/ui'
 
 const OUTROS: { tipo: TipoIrregularidade; dica: string }[] = [
   { tipo: 'veiculo', dica: 'Modelo ou cor diferente do cadastrado' },
@@ -78,9 +78,7 @@ export function ReportarDivergencia() {
 
   return (
     <div className="pb-36">
-      <Link to={`/patio/${item.id}`} className="rotulo mt-4 inline-block text-brita hover:text-asfalto">
-        ← {motorista.nome}
-      </Link>
+      <LinkVoltar para={`/patio/${item.id}`}>{motorista.nome}</LinkVoltar>
 
       <h1 className="mt-3 font-display text-2xl font-extrabold leading-tight">
         O que está diferente?
