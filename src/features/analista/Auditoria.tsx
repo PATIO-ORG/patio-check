@@ -17,11 +17,13 @@ const ROTULO_ACAO: Record<AcaoAuditavel, { texto: string; cor: string }> = {
 export function Auditoria() {
   const [usuarioId, setUsuarioId] = useState('')
   const [data, setData] = useState(HOJE)
+  const [acao, setAcao] = useState<AcaoAuditavel | ''>('')
   const { dados: usuarios } = useLiveData((ds) => ds.listarUsuarios())
   const { dados: logs } = useLiveData(
     (ds) => ds.listarAuditoria({ data, usuarioId: usuarioId || undefined }),
     [data, usuarioId],
   )
+  const visiveis = acao ? logs?.filter((l) => l.acao === acao) : logs
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-4">
@@ -58,20 +60,35 @@ export function Auditoria() {
             ))}
           </select>
         </label>
+        <label className="block">
+          <span className="rotulo mb-1 block text-brita">Ação</span>
+          <select
+            value={acao}
+            onChange={(e) => setAcao(e.target.value as AcaoAuditavel | '')}
+            className="rounded-chip border border-linha bg-superficie px-3 py-2 text-sm"
+          >
+            <option value="">Todas</option>
+            {(Object.keys(ROTULO_ACAO) as AcaoAuditavel[]).map((a) => (
+              <option key={a} value={a}>
+                {ROTULO_ACAO[a].texto}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       <Cartao>
         <TituloSecao
-          acao={<span className="font-display text-sm text-brita">{logs?.length ?? 0} registros</span>}
+          acao={<span className="font-display text-sm text-brita">{visiveis?.length ?? 0} registros</span>}
         >
           Linha do tempo
         </TituloSecao>
 
-        {!logs || logs.length === 0 ? (
-          <Vazio titulo="Nenhum registro nesse filtro" acao="Escolha outra data ou outro usuário." />
+        {!visiveis || visiveis.length === 0 ? (
+          <Vazio titulo="Nenhum registro nesse filtro" acao="Escolha outra data, usuário ou ação." />
         ) : (
           <ul className="divide-y divide-linha">
-            {logs.map((l) => {
+            {visiveis.map((l) => {
               const a = ROTULO_ACAO[l.acao]
               return (
                 <li key={l.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3">
