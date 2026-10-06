@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import {
   Bar,
   BarChart,
@@ -12,7 +12,8 @@ import {
 } from 'recharts'
 import { HOJE, useLiveData } from '../../data/provider'
 import type { ResumoDiario } from '../../data/DataSource'
-import { Botao, Cartao, TituloSecao, Vazio, diaCurto } from '../shared/ui'
+import { PlacaComparada } from '../shared/Placa'
+import { Botao, Cartao, ROTULO_TIPO, StatusPill, TituloSecao, Vazio, diaCurto, hora } from '../shared/ui'
 import { COR, Dica, EIXO } from './graficos'
 
 const PERIODOS = [7, 14, 30] as const
@@ -20,6 +21,7 @@ const PERIODOS = [7, 14, 30] as const
 export function Relatorios() {
   const [dias, setDias] = useState<(typeof PERIODOS)[number]>(14)
   const { dados: historico } = useLiveData((ds) => ds.historico(dias, HOJE), [dias])
+  const [diaAberto, setDiaAberto] = useState<string | null>(null)
 
   const serie = (historico ?? []).map((d) => ({ ...d, rotulo: diaCurto(d.data) }))
   const total = serie.reduce(
@@ -159,21 +161,94 @@ export function Relatorios() {
               </tr>
             </thead>
             <tbody className="divide-y divide-linha font-display tabular-nums">
-              {[...serie].reverse().map((d) => (
-                <tr key={d.data}>
-                  <td className="px-4 py-2">{d.rotulo}</td>
-                  <td className="px-4 py-2 text-right">{d.escalados}</td>
-                  <td className="px-4 py-2 text-right">{d.conferidos}</td>
-                  <td className="px-4 py-2 text-right text-sinal-ink">{d.bloqueados}</td>
-                  <td className="px-4 py-2 text-right text-ressalva-ink">{d.liberadosComRessalva}</td>
-                  <td className="px-4 py-2 text-right font-bold">{d.taxaConformidade}%</td>
-                </tr>
-              ))}
+              {[...serie].reverse().map((d) => {
+                const temCasos = d.bloqueados + d.liberadosComRessalva > 0
+                const aberto = diaAberto === d.data
+                return (
+                  <Fragment key={d.data}>
+                    <tr
+                      onClick={temCasos ? () => setDiaAberto(aberto ? null : d.data) : undefined}
+                      className={temCasos ? 'cursor-pointer hover:bg-concreto-2' : ''}
+                    >
+                      <td className="px-4 py-2">
+                        {temCasos ? (
+                          <button
+                            aria-expanded={aberto}
+                            aria-label={`Ver divergências de ${d.rotulo}`}
+                            className="flex items-center gap-2"
+                          >
+                            <span aria-hidden="true" className={`text-brita transition-transform ${aberto ? 'rotate-90' : ''}`}>
+                              ▸
+                            </span>
+                            {d.rotulo}
+                          </button>
+                        ) : (
+                          <span className="pl-5">{d.rotulo}</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-2 text-right">{d.escalados}</td>
+                      <td className="px-4 py-2 text-right">{d.conferidos}</td>
+                      <td className="px-4 py-2 text-right text-sinal-ink">{d.bloqueados}</td>
+                      <td className="px-4 py-2 text-right text-ressalva-ink">{d.liberadosComRessalva}</td>
+                      <td className="px-4 py-2 text-right font-bold">{d.taxaConformidade}%</td>
+                    </tr>
+                    {aberto && (
+                      <tr>
+                        <td colSpan={6} className="bg-concreto-2 p-0 font-sans">
+                          <CasosDoDia data={d.data} />
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                )
+              })}
             </tbody>
           </table>
         </div>
       </Cartao>
     </div>
+  )
+}
+
+function CasosDoDia({ data }: { data: string }) {
+  const { dados: itens } = useLiveData((ds) => ds.listarItens(data), [data])
+  const casos = (itens ?? []).filter((i) => i.irregularidades.length > 0)
+
+  if (!itens) return <p className="px-4 py-4 text-sm text-brita">Carregando…</p>
+  if (casos.length === 0) return <p className="px-4 py-4 text-sm text-brita">Nenhuma divergência neste dia.</p>
+
+  return (
+    <ul className="divide-y divide-linha">
+      {casos.map(({ item, motorista, ultimoCheckin, irregularidades }) => (
+        <li key={item.id} className="flex flex-col gap-3 px-4 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="font-display text-[15px] font-bold">{motorista.nome}</p>
+              <p className="text-[13px] text-brita">
+                ID {motorista.driverId} · rota {item.rota}
+                {ultimoCheckin && ` · ${hora(ultimoCheckin.em)}`}
+              </p>
+            </div>
+            <StatusPill status={item.status} />
+          </div>
+          <ul className="flex flex-col gap-2">
+            {irregularidades.map((irr) => (
+              <li key={irr.id} className="flex flex-wrap items-center gap-3 text-sm">
+                <span className="rotulo w-28 text-brita">{ROTULO_TIPO[irr.tipo]}</span>
+                {irr.tipo === 'placa' ? (
+                  <PlacaComparada esperado={irr.esperado} encontrado={irr.encontrado} tamanho="sm" />
+                ) : (
+                  <span>
+                    <span className="text-brita line-through">{irr.esperado}</span>{' '}
+                    <span className="font-semibold text-sinal-ink">→ {irr.encontrado}</span>
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </li>
+      ))}
+    </ul>
   )
 }
 
