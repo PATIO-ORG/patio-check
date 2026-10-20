@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { registrarCheckin, resolverBloqueio, podeEditarEscala } from './status'
+import { chegouForaDaOnda, registrarCheckin, resolverBloqueio, podeEditarEscala } from './status'
 
 describe('registrarCheckin', () => {
   it('libera o item quando o fiscal confirma que está tudo conforme', () => {
