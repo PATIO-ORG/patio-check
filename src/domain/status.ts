@@ -103,6 +103,10 @@ export function podeEditarEscala(papel: Papel): boolean {
   return papel === 'analista'
 }
 
+export function podeGerenciarColaboradores(papel: Papel): boolean {
+  return papel === 'lider'
+}
+
 export function podeResolverBloqueio(papel: Papel): boolean {
   return papel === 'analista'
 }

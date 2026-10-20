@@ -3,20 +3,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { useSessao } from '../../auth/sessao'
 import { HOJE, MODO_DEMONSTRACAO, reiniciarDemonstracao, useLiveData, useSimulador } from '../../data/provider'
 import { podeEditarEscala } from '../../domain/status'
-import { BotaoSair } from '../shared/ui'
-
-type Tema = 'claro' | 'escuro'
-
-const CHAVE_TEMA = 'patio-check:tema'
-const ATRASO_BARRA_FIXA_MS = 1500
-
-function lerTemaSalvo(): Tema {
-  try {
-    return localStorage.getItem(CHAVE_TEMA) === 'escuro' ? 'escuro' : 'claro'
-  } catch {
-    return 'claro'
-  }
-}
+import { dataExtensa } from '../shared/ui'
 
 export function LayoutAnalista() {
   const { usuario, sair } = useSessao()
@@ -79,7 +66,7 @@ export function LayoutAnalista() {
     ...(podeEditar ? [{ to: '/escala', rotulo: 'Escala' }] : []),
     { to: '/alertas', rotulo: 'Alertas', badge: alertas?.length },
     { to: '/relatorios', rotulo: 'Relatórios' },
-    { to: '/auditoria', rotulo: 'Histórico' },
+    { to: '/auditoria', rotulo: 'Auditoria' },
   ]
 
   return (

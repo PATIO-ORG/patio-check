@@ -30,7 +30,7 @@ variáveis configuradas, use o e-mail e a senha de uma conta cadastrada no Supab
 |---|---|
 | **Fiscal de pátio** | Confere drivers na chegada e reporta divergência (celular) |
 | **Analista** | Sobe a escala, resolve bloqueios, acompanha painel e relatórios |
-| **Líder** | Acompanha painel e relatórios, sem editar escala |
+| **Líder** | Acompanha painel e relatórios, sem editar escala. Cadastra, desativa e reativa Fiscais e Analistas em **Colaboradores** |
 
 ## Publicar na Vercel com dados compartilhados
 
@@ -47,13 +47,44 @@ variáveis configuradas, use o e-mail e a senha de uma conta cadastrada no Supab
 4. Importe o repositório na Vercel. O projeto detecta Vite automaticamente; use
    `npm run build` como comando e `dist` como diretório de saída.
 5. Nas variáveis de ambiente da Vercel, configure `VITE_SUPABASE_URL` e
-   `VITE_SUPABASE_ANON_KEY` com os valores do painel Supabase. Faça um novo deploy.
+   `VITE_SUPABASE_ANON_KEY` com os valores do painel Supabase. Para a tela
+   **Colaboradores** do Líder, configure também `SUPABASE_SERVICE_ROLE_KEY` (painel
+   Supabase → Project Settings → API) e `APP_URL` (endereço de produção, sem barra
+   no final). Faça um novo deploy.
 6. Use os e-mails e senhas criados no Supabase para entrar. A escala, check-ins,
    alertas e auditoria passam a ser compartilhados em celulares e computadores.
 
-Nunca configure `service_role` no frontend ou na Vercel como variável `VITE_*`.
-O banco aplica as permissões por perfil. Para testar o modo local sem Supabase,
+A `service_role` é secreta: configure-a só na Vercel, **sem** o prefixo `VITE_`
+(com o prefixo ela iria para o navegador). Ela é usada apenas pela função
+`api/colaboradores.ts`, que antes de qualquer ação confere se quem chamou é um Líder
+ativo. O banco aplica as permissões por perfil. Para testar o modo local sem Supabase,
 rode `npm run dev` sem as variáveis de ambiente.
+
+## Gestão de colaboradores pelo Líder
+
+Depois do primeiro Líder criado pelos desenvolvedores (conta em **Authentication →
+Users** + `update public.profiles set papel = 'lider' where email = '...';`), a empresa
+passa a controlar a própria equipe pelo menu **Colaboradores**:
+
+- **Cadastrar:** nome, e-mail e função (Fiscal ou Analista). A pessoa recebe um convite
+  por e-mail e cria a própria senha em `/definir-senha`. O Líder nunca vê senhas.
+- **Desativar / reativar:** bloqueia ou libera o acesso na hora. O histórico de
+  check-ins e auditoria da pessoa é mantido.
+- **Limites de segurança:** ninguém vira Líder por essa tela, o Líder não desativa a si
+  mesmo nem outro Líder, e as regras valem no servidor, não só na tela.
+
+Configuração necessária no Supabase:
+
+1. **Authentication → URL Configuration → Redirect URLs:** adicione
+   `https://SEU-DOMINIO/definir-senha` (e a versão local, se for testar).
+2. **Authentication → Emails → Invite user:** o modelo padrão já serve; ele usa
+   `{{ .ConfirmationURL }}`.
+3. O envio de e-mail padrão do Supabase tem limite baixo de mensagens por hora e serve
+   só para testes. Para uso real, configure um SMTP próprio em **Authentication → SMTP
+   Settings**.
+
+Em desenvolvimento local, o Vite não serve `/api`. Para testar a tela de colaboradores
+use `npx vercel dev`, com `SUPABASE_SERVICE_ROLE_KEY` e `APP_URL` em `.env.local`.
 
 ## Como apresentar
 

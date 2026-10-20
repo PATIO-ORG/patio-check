@@ -1,6 +1,9 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useSessao } from './auth/sessao'
 import { Login } from './features/shared/Login'
+import { DefinirSenha } from './features/shared/DefinirSenha'
+import { Colaboradores } from './features/lider/Colaboradores'
+import { podeGerenciarColaboradores } from './domain/status'
 import { LayoutFiscal } from './features/fiscal/LayoutFiscal'
 import { ListaDoDia } from './features/fiscal/ListaDoDia'
 import { DetalheDriver } from './features/fiscal/DetalheDriver'
@@ -14,6 +17,10 @@ import { Auditoria } from './features/analista/Auditoria'
 
 export function App() {
   const { usuario, carregando } = useSessao()
+  const { pathname } = useLocation()
+
+  // Link do convite por e-mail: a pessoa define a senha antes de usar o sistema.
+  if (pathname === '/definir-senha') return <DefinirSenha />
 
   if (carregando) {
     return <main className="grid min-h-dvh place-items-center bg-concreto text-brita">Carregando sessão…</main>
@@ -41,6 +48,9 @@ export function App() {
         <Route path="/alertas" element={<Alertas />} />
         <Route path="/relatorios" element={<Relatorios />} />
         <Route path="/auditoria" element={<Auditoria />} />
+        {podeGerenciarColaboradores(usuario.papel) && (
+          <Route path="/colaboradores" element={<Colaboradores />} />
+        )}
       </Route>
       <Route path="*" element={<Navigate to="/painel" replace />} />
     </Routes>
