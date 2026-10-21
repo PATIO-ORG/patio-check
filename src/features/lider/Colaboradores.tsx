@@ -11,9 +11,9 @@ import type { Colaborador, PapelColaborador } from './colaboradoresApi'
 const ROTULO_PAPEL = { fiscal: 'Fiscal', analista: 'Analista', lider: 'Líder' } as const
 
 function situacao(c: Colaborador) {
-  if (!c.ativo) return { texto: 'Desativado', classe: 'bg-sinal-fraca text-sinal' }
-  if (c.convitePendente) return { texto: 'Convite pendente', classe: 'bg-ressalva-fraca text-ressalva' }
-  return { texto: 'Ativo', classe: 'bg-liberado-fraca text-liberado' }
+  if (!c.ativo) return { texto: 'Desativado', classe: 'bg-sinal-fraca text-sinal-ink' }
+  if (c.convitePendente) return { texto: 'Convite pendente', classe: 'bg-ressalva-fraca text-ressalva-ink' }
+  return { texto: 'Ativo', classe: 'bg-liberado-fraca text-liberado-ink' }
 }
 
 export function Colaboradores() {
@@ -87,7 +87,7 @@ export function Colaboradores() {
     }
   }
 
-  const campo = 'rounded-chip border border-linha bg-white px-3 py-2.5 text-sm'
+  const campo = 'rounded-chip border border-linha bg-superficie px-3 py-2.5 text-sm'
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-4">
@@ -126,7 +126,7 @@ export function Colaboradores() {
         {aviso && (
           <p
             role={aviso.tipo === 'erro' ? 'alert' : 'status'}
-            className={`border-t border-linha px-5 py-3 text-sm font-semibold ${aviso.tipo === 'erro' ? 'text-sinal' : 'text-liberado'}`}
+            className={`border-t border-linha px-5 py-3 text-sm font-semibold ${aviso.tipo === 'erro' ? 'text-sinal-ink' : 'text-liberado-ink'}`}
           >
             {aviso.texto}
           </p>
@@ -136,7 +136,7 @@ export function Colaboradores() {
       <Cartao>
         <TituloSecao>Equipe</TituloSecao>
         {erroLista ? (
-          <p role="alert" className="px-5 py-6 text-sm font-semibold text-sinal">{erroLista}</p>
+          <p role="alert" className="px-5 py-6 text-sm font-semibold text-sinal-ink">{erroLista}</p>
         ) : !lista ? (
           <p className="px-5 py-6 text-sm text-brita">Carregando…</p>
         ) : lista.length === 0 ? (
@@ -151,7 +151,7 @@ export function Colaboradores() {
                     <p className="truncate font-display text-[15px] font-bold">{c.nome}</p>
                     <p className="truncate text-[13px] text-brita">{c.email}</p>
                   </div>
-                  <span className="rotulo rounded-full bg-concreto px-2.5 py-1 text-asfalto">{ROTULO_PAPEL[c.papel]}</span>
+                  <span className="rotulo rounded-full bg-concreto px-2.5 py-1 text-ink">{ROTULO_PAPEL[c.papel]}</span>
                   <span className={`rotulo rounded-full px-2.5 py-1 ${s.classe}`}>{s.texto}</span>
                   {c.gerenciavel ? (
                     <Botao

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useSessao } from '../../auth/sessao'
 import { HOJE, MODO_DEMONSTRACAO, reiniciarDemonstracao, useLiveData, useSimulador } from '../../data/provider'
-import { podeEditarEscala } from '../../domain/status'
+import { podeEditarEscala, podeGerenciarColaboradores } from '../../domain/status'
 import { BotaoSair } from '../shared/ui'
 
 type Tema = 'claro' | 'escuro'
@@ -80,6 +80,9 @@ export function LayoutAnalista() {
     { to: '/alertas', rotulo: 'Alertas', badge: alertas?.length },
     { to: '/relatorios', rotulo: 'Relatórios' },
     { to: '/auditoria', rotulo: 'Histórico' },
+    ...(usuario && podeGerenciarColaboradores(usuario.papel)
+      ? [{ to: '/colaboradores', rotulo: 'Colaboradores' }]
+      : []),
   ]
 
   return (

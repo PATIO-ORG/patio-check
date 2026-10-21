@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { chegouForaDaOnda, registrarCheckin, resolverBloqueio, podeEditarEscala } from './status'
+import { chegouForaDaOnda, registrarCheckin, resolverBloqueio, podeEditarEscala, podeGerenciarColaboradores } from './status'
+
+describe('podeGerenciarColaboradores', () => {
+  it('permite apenas ao líder', () => {
+    expect(podeGerenciarColaboradores('lider')).toBe(true)
+    expect(podeGerenciarColaboradores('analista')).toBe(false)
+    expect(podeGerenciarColaboradores('fiscal')).toBe(false)
+  })
+})
 
 describe('registrarCheckin', () => {
   it('libera o item quando o fiscal confirma que está tudo conforme', () => {
