@@ -24,6 +24,11 @@
   /* Laranja só do botão Sair. Não reaproveita `ressalva`: laranja já significa
      "liberado com ressalva" no sistema. */
   --color-sair: #e08a33;
+  /* Botão de ação principal: escuro no tema claro, amarelo de demarcação no escuro
+     (asfalto sobre fundo escuro some). */
+  --color-acao: #1b1e24;
+  --color-acao-texto: #edede8;
+  --color-acao-hover: #272b33;
 
   /* Tokens de tema: no claro (padrão) valem o mesmo que a cor "fixa" que
      substituem. Só o painel do analista (.pc-analista) redefine estes no
@@ -196,4 +201,7 @@
   --color-liberado-ink: #34d399;
   --color-ressalva-ink: #fb923c;
   --color-demarcacao-escura-ink: #d1a83e;
+  --color-acao: #f2c230;
+  --color-acao-texto: #1b1e24;
+  --color-acao-hover: #f7d058;
 }

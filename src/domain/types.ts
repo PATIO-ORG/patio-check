@@ -1,4 +1,4 @@
-export type Papel = 'fiscal' | 'analista' | 'lider'
+export type Papel = 'fiscal' | 'analista' | 'lider' | 'super_admin'
 
 export interface Usuario {
   id: string

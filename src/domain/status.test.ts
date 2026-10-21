@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { chegouForaDaOnda, registrarCheckin, resolverBloqueio, podeEditarEscala, podeGerenciarColaboradores } from './status'
+import { chegouForaDaOnda, registrarCheckin, resolverBloqueio, podeEditarEscala, podeGerenciarColaboradores, podeGerenciarPapel } from './status'
 
 describe('podeGerenciarColaboradores', () => {
   it('permite apenas ao líder', () => {
@@ -150,5 +150,18 @@ describe('chegouForaDaOnda', () => {
     expect(chegouForaDaOnda('', chegada('12:00'))).toBe(false)
     expect(chegouForaDaOnda('manhã', chegada('12:00'))).toBe(false)
     expect(chegouForaDaOnda('25:00', chegada('12:00'))).toBe(false)
+  })
+})
+
+describe('podeGerenciarPapel', () => {
+  it('só gerencia quem está abaixo na hierarquia', () => {
+    expect(podeGerenciarColaboradores('super_admin')).toBe(true)
+    expect(podeGerenciarPapel('super_admin', 'lider')).toBe(true)
+    expect(podeGerenciarPapel('lider', 'fiscal')).toBe(true)
+    expect(podeGerenciarPapel('lider', 'analista')).toBe(true)
+    expect(podeGerenciarPapel('lider', 'lider')).toBe(false)
+    expect(podeGerenciarPapel('super_admin', 'super_admin')).toBe(false)
+    expect(podeGerenciarPapel('lider', 'super_admin')).toBe(false)
+    expect(podeGerenciarPapel('analista', 'fiscal')).toBe(false)
   })
 })

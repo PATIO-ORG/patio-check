@@ -8,7 +8,8 @@ import { Placa } from './Placa'
 const DESCRICAO: Record<string, string> = {
   fiscal: 'Confere drivers na chegada e reporta divergência.',
   analista: 'Sobe a escala, resolve bloqueios e acompanha o painel.',
-  lider: 'Acompanha painel e relatórios, sem editar escala.',
+  lider: 'Acompanha painel e relatórios e gerencia fiscais e analistas.',
+  super_admin: 'Acima de todos: gerencia líderes, fiscais e analistas.',
 }
 
 export function Login() {
@@ -62,7 +63,7 @@ export function Login() {
                   onClick={() => void entrar(u.id)}
                   className="group flex w-full flex-col items-start gap-1 rounded-lg border border-asfalto-3 bg-asfalto-2 p-4 text-left transition-colors hover:border-demarcacao"
                 >
-                  <span className="rotulo text-demarcacao">{u.papel}</span>
+                  <span className="rotulo text-demarcacao">{u.papel === 'super_admin' ? 'super admin' : u.papel}</span>
                   <span className="font-display text-lg font-bold">{u.nome}</span>
                   <span className="text-[13px] leading-snug text-brita-2">
                     {DESCRICAO[u.papel]}

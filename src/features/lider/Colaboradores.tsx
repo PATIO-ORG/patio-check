@@ -4,11 +4,26 @@ import { Botao, Cartao, TituloSecao, Vazio } from '../shared/ui'
 import {
   alterarAcesso,
   convidarColaborador,
+  excluirColaborador,
   listarColaboradores,
 } from './colaboradoresApi'
 import type { Colaborador, PapelColaborador } from './colaboradoresApi'
 
-const ROTULO_PAPEL = { fiscal: 'Fiscal', analista: 'Analista', lider: 'Líder' } as const
+const ROTULO_PAPEL = {
+  fiscal: 'Fiscal',
+  analista: 'Analista',
+  lider: 'Líder',
+  super_admin: 'Super Admin',
+} as const
+
+function IconeReativar() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 12a9 9 0 1 0 3-6.7" />
+      <path d="M3 4v5h5" />
+    </svg>
+  )
+}
 
 function situacao(c: Colaborador) {
   if (!c.ativo) return { texto: 'Desativado', classe: 'bg-sinal-fraca text-sinal-ink' }
@@ -18,6 +33,7 @@ function situacao(c: Colaborador) {
 
 export function Colaboradores() {
   const [lista, setLista] = useState<Colaborador[] | null>(null)
+  const [meuPapel, setMeuPapel] = useState<'lider' | 'super_admin'>('lider')
   const [erroLista, setErroLista] = useState('')
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
@@ -28,7 +44,9 @@ export function Colaboradores() {
 
   const carregar = useCallback(async () => {
     try {
-      setLista(await listarColaboradores())
+      const resposta = await listarColaboradores()
+      setLista(resposta.colaboradores)
+      setMeuPapel(resposta.meuPapel)
       setErroLista('')
     } catch (erro) {
       setErroLista(erro instanceof Error ? erro.message : String(erro))
@@ -87,6 +105,24 @@ export function Colaboradores() {
     }
   }
 
+  async function excluir(c: Colaborador) {
+    const aviso =
+      `Excluir ${c.nome} (${c.email}) definitivamente? A conta é apagada e não dá para desfazer.\n\n` +
+      'Só é possível excluir quem nunca usou o sistema; quem já tem histórico deve ser desativado.'
+    if (!confirm(aviso)) return
+    setAviso(null)
+    setOcupado(c.id)
+    try {
+      await excluirColaborador(c.id)
+      setAviso({ tipo: 'ok', texto: `${c.nome} foi excluído.` })
+    } catch (erro) {
+      setAviso({ tipo: 'erro', texto: erro instanceof Error ? erro.message : String(erro) })
+    } finally {
+      setOcupado(null)
+      await carregar()
+    }
+  }
+
   const campo = 'rounded-chip border border-linha bg-superficie px-3 py-2.5 text-sm'
 
   return (
@@ -94,7 +130,7 @@ export function Colaboradores() {
       <header>
         <h1 className="font-display text-2xl font-extrabold">Colaboradores</h1>
         <p className="mt-1 text-sm text-brita">
-          Cadastre Fiscais e Analistas e controle quem tem acesso. Cada pessoa recebe um convite por
+          {meuPapel === 'super_admin' ? 'Cadastre Líderes, Fiscais e Analistas' : 'Cadastre Fiscais e Analistas'} e controle quem tem acesso. Cada pessoa recebe um convite por
           e-mail e cria a própria senha.
         </p>
       </header>
@@ -115,6 +151,7 @@ export function Colaboradores() {
             <select value={papel} onChange={(e) => setPapel(e.target.value as PapelColaborador)} className={campo}>
               <option value="fiscal">Fiscal de pátio</option>
               <option value="analista">Analista</option>
+              {meuPapel === 'super_admin' && <option value="lider">Líder</option>}
             </select>
           </label>
           <div className="flex items-end">
@@ -153,17 +190,32 @@ export function Colaboradores() {
                   </div>
                   <span className="rotulo rounded-full bg-concreto px-2.5 py-1 text-ink">{ROTULO_PAPEL[c.papel]}</span>
                   <span className={`rotulo rounded-full px-2.5 py-1 ${s.classe}`}>{s.texto}</span>
-                  {c.gerenciavel ? (
-                    <Botao
-                      variante={c.ativo ? 'neutro' : 'primario'}
-                      disabled={ocupado === c.id}
-                      onClick={() => void alternar(c)}
-                    >
-                      {c.ativo ? 'Desativar' : 'Reativar'}
-                    </Botao>
-                  ) : (
-                    <span className="w-[92px]" aria-hidden="true" />
-                  )}
+                  <div className="flex w-full items-center justify-end gap-2 sm:w-[212px]">
+                    {c.gerenciavel && (
+                      <>
+                        {c.ativo ? (
+                          <Botao variante="neutro" disabled={ocupado === c.id} onClick={() => void alternar(c)}>
+                            Desativar
+                          </Botao>
+                        ) : (
+                          <Botao variante="sucesso" disabled={ocupado === c.id} onClick={() => void alternar(c)}>
+                            <span className="inline-flex items-center gap-1.5">
+                              <IconeReativar />
+                              Reativar
+                            </span>
+                          </Botao>
+                        )}
+                        <Botao
+                          variante="perigo-suave"
+                          disabled={ocupado === c.id}
+                          onClick={() => void excluir(c)}
+                          aria-label={`Excluir ${c.nome}`}
+                        >
+                          Excluir
+                        </Botao>
+                      </>
+                    )}
+                  </div>
                 </li>
               )
             })}

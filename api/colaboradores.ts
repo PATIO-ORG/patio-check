@@ -6,9 +6,11 @@
 //   2. confere no banco se essa pessoa é um Líder ativo;
 //   3. só então usa a chave de administrador.
 //
-// Regras fixas: o Líder só cria/gerencia Fiscais e Analistas; ninguém vira Líder
-// por aqui (isso continua sendo ação dos desenvolvedores) e o Líder não consegue
-// desativar a si mesmo nem outro Líder.
+// Hierarquia: Super Admin > Líder > Fiscal/Analista. Só se gerencia quem está num
+// degrau abaixo: o Líder cria, desativa, reativa e exclui Fiscais e Analistas; o
+// Super Admin faz o mesmo com Líderes também. Ninguém gerencia a si mesmo, quem
+// está no mesmo degrau, nem o Super Admin (não há ninguém acima dele — essa conta
+// só é criada/alterada direto no banco, pelos desenvolvedores).
 //
 // Mantido em um único arquivo de propósito: a Vercel compila cada arquivo de /api
 // de forma isolada, então evitamos imports relativos entre eles.
@@ -16,8 +18,26 @@
 import { createClient } from '@supabase/supabase-js'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-const PAPEIS_GERENCIAVEIS = ['fiscal', 'analista'] as const
-type PapelGerenciavel = (typeof PAPEIS_GERENCIAVEIS)[number]
+type Papel = 'fiscal' | 'analista' | 'lider' | 'super_admin'
+const NIVEL: Record<Papel, number> = { fiscal: 1, analista: 1, lider: 2, super_admin: 3 }
+
+function nivel(papel: unknown): number {
+  return typeof papel === 'string' && papel in NIVEL ? NIVEL[papel as Papel] : Infinity
+}
+// Papéis que `ator` pode atribuir/gerenciar: apenas os de nível inferior ao dele.
+function podeGerenciar(ator: Papel, alvo: unknown): boolean {
+  return nivel(alvo) < NIVEL[ator]
+}
+
+// Tabelas que guardam quem fez o quê. Quem aparece nelas não pode ser excluído:
+// apagar a conta quebraria o histórico e a auditoria (nesses casos, desative).
+const TABELAS_DE_HISTORICO = [
+  ['escalas', 'criada_por'],
+  ['escala_itens', 'adicionado_por'],
+  ['checkins', 'fiscal_id'],
+  ['liberacoes', 'analista_id'],
+  ['auditoria', 'usuario_id'],
+] as const
 
 const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const UUID_VALIDO = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -51,7 +71,12 @@ function criarAdmin(): SupabaseClient {
   return createClient(url, chave, { auth: { autoRefreshToken: false, persistSession: false } })
 }
 
-async function exigirLider(admin: SupabaseClient, request: Request): Promise<string> {
+interface Ator {
+  id: string
+  papel: Papel
+}
+
+async function exigirGestor(admin: SupabaseClient, request: Request): Promise<Ator> {
   const cabecalho = request.headers.get('authorization') ?? ''
   const token = cabecalho.startsWith('Bearer ') ? cabecalho.slice(7).trim() : ''
   if (!token) throw new ErroHttp(401, 'Sessão ausente. Entre novamente.')
@@ -65,10 +90,10 @@ async function exigirLider(admin: SupabaseClient, request: Request): Promise<str
     .eq('id', data.user.id)
     .maybeSingle()
   if (erroPerfil) throw new ErroHttp(500, 'Não foi possível verificar suas permissões.')
-  if (!perfil || !perfil.ativo || perfil.papel !== 'lider') {
-    throw new ErroHttp(403, 'Apenas Líderes ativos podem gerenciar colaboradores.')
+  if (!perfil || !perfil.ativo || (perfil.papel !== 'lider' && perfil.papel !== 'super_admin')) {
+    throw new ErroHttp(403, 'Apenas Líderes e Super Admins ativos podem gerenciar colaboradores.')
   }
-  return perfil.id as string
+  return { id: perfil.id as string, papel: perfil.papel as Papel }
 }
 
 async function lerJson(request: Request): Promise<Record<string, unknown>> {
@@ -89,11 +114,11 @@ function enderecoDoApp(request: Request): string {
   return request.headers.get('origin') ?? new URL(request.url).origin
 }
 
-async function tratar(request: Request, acao: (admin: SupabaseClient, liderId: string) => Promise<Response>) {
+async function tratar(request: Request, acao: (admin: SupabaseClient, ator: Ator) => Promise<Response>) {
   try {
     const admin = criarAdmin()
-    const liderId = await exigirLider(admin, request)
-    return await acao(admin, liderId)
+    const ator = await exigirGestor(admin, request)
+    return await acao(admin, ator)
   } catch (erro) {
     if (erro instanceof ErroHttp) return resposta({ erro: erro.message }, erro.status)
     console.error('colaboradores: erro inesperado', erro)
@@ -103,7 +128,7 @@ async function tratar(request: Request, acao: (admin: SupabaseClient, liderId: s
 
 // Lista todos os perfis, indicando quem ainda não aceitou o convite.
 export function GET(request: Request) {
-  return tratar(request, async (admin) => {
+  return tratar(request, async (admin, ator) => {
     const { data: perfis, error } = await admin
       .from('profiles')
       .select('id, nome, email, papel, ativo')
@@ -117,6 +142,7 @@ export function GET(request: Request) {
     )
 
     return resposta({
+      meuPapel: ator.papel,
       colaboradores: (perfis ?? []).map((p) => ({
         id: p.id,
         nome: p.nome,
@@ -124,7 +150,7 @@ export function GET(request: Request) {
         papel: p.papel,
         ativo: p.ativo,
         convitePendente: !ultimoAcesso.get(p.id),
-        gerenciavel: (PAPEIS_GERENCIAVEIS as readonly string[]).includes(p.papel),
+        gerenciavel: p.id !== ator.id && podeGerenciar(ator.papel, p.papel),
       })),
     })
   })
@@ -132,7 +158,7 @@ export function GET(request: Request) {
 
 // Cadastra um Fiscal ou Analista e envia o convite por e-mail.
 export function POST(request: Request) {
-  return tratar(request, async (admin) => {
+  return tratar(request, async (admin, ator) => {
     const corpo = await lerJson(request)
     const nome = typeof corpo.nome === 'string' ? corpo.nome.trim() : ''
     const email = typeof corpo.email === 'string' ? corpo.email.trim().toLowerCase() : ''
@@ -140,8 +166,13 @@ export function POST(request: Request) {
 
     if (nome.length < 2 || nome.length > 100) throw new ErroHttp(400, 'Informe o nome (2 a 100 caracteres).')
     if (!EMAIL_VALIDO.test(email) || email.length > 254) throw new ErroHttp(400, 'Informe um e-mail válido.')
-    if (!PAPEIS_GERENCIAVEIS.includes(papel as PapelGerenciavel)) {
-      throw new ErroHttp(403, 'Só é possível cadastrar Fiscais e Analistas.')
+    if (!podeGerenciar(ator.papel, papel)) {
+      throw new ErroHttp(
+        403,
+        ator.papel === 'super_admin'
+          ? 'Só é possível cadastrar Líderes, Fiscais e Analistas.'
+          : 'Só é possível cadastrar Fiscais e Analistas.',
+      )
     }
 
     const { data: existente, error: erroBusca } = await admin
@@ -180,12 +211,12 @@ export function POST(request: Request) {
 
 // Ativa ou desativa um colaborador. O histórico dele é preservado.
 export function PATCH(request: Request) {
-  return tratar(request, async (admin, liderId) => {
+  return tratar(request, async (admin, ator) => {
     const corpo = await lerJson(request)
     const id = typeof corpo.id === 'string' ? corpo.id : ''
     const ativo = corpo.ativo
     if (!UUID_VALIDO.test(id) || typeof ativo !== 'boolean') throw new ErroHttp(400, 'Requisição inválida.')
-    if (id === liderId) throw new ErroHttp(400, 'Você não pode desativar o próprio acesso.')
+    if (id === ator.id) throw new ErroHttp(400, 'Você não pode desativar o próprio acesso.')
 
     const { data: alvo, error: erroAlvo } = await admin
       .from('profiles')
@@ -194,8 +225,8 @@ export function PATCH(request: Request) {
       .maybeSingle()
     if (erroAlvo) throw new ErroHttp(500, 'Não foi possível localizar o colaborador.')
     if (!alvo) throw new ErroHttp(404, 'Colaborador não encontrado.')
-    if (!(PAPEIS_GERENCIAVEIS as readonly string[]).includes(alvo.papel)) {
-      throw new ErroHttp(403, 'Contas de Líder não podem ser alteradas por aqui.')
+    if (!podeGerenciar(ator.papel, alvo.papel)) {
+      throw new ErroHttp(403, 'Você não tem permissão para alterar esta conta.')
     }
     if (alvo.ativo === ativo) return resposta({ id, ativo })
 
@@ -227,5 +258,46 @@ export function PATCH(request: Request) {
       }
     }
     return resposta({ id, ativo })
+  })
+}
+
+// Exclui definitivamente a conta de um colaborador que nunca teve atividade no
+// sistema (ex.: convite enviado por engano). Quem já tem histórico só pode ser
+// desativado, para não quebrar check-ins e auditoria.
+export function DELETE(request: Request) {
+  return tratar(request, async (admin, ator) => {
+    const corpo = await lerJson(request)
+    const id = typeof corpo.id === 'string' ? corpo.id : ''
+    if (!UUID_VALIDO.test(id)) throw new ErroHttp(400, 'Requisição inválida.')
+    if (id === ator.id) throw new ErroHttp(400, 'Você não pode excluir a própria conta.')
+
+    const { data: alvo, error: erroAlvo } = await admin
+      .from('profiles')
+      .select('id, papel')
+      .eq('id', id)
+      .maybeSingle()
+    if (erroAlvo) throw new ErroHttp(500, 'Não foi possível localizar o colaborador.')
+    if (!alvo) throw new ErroHttp(404, 'Colaborador não encontrado.')
+    if (!podeGerenciar(ator.papel, alvo.papel)) {
+      throw new ErroHttp(403, 'Você não tem permissão para excluir esta conta.')
+    }
+
+    for (const [tabela, coluna] of TABELAS_DE_HISTORICO) {
+      const { count, error } = await admin
+        .from(tabela)
+        .select('id', { count: 'exact', head: true })
+        .eq(coluna, id)
+      if (error) throw new ErroHttp(500, 'Não foi possível verificar o histórico do colaborador.')
+      if (count) {
+        throw new ErroHttp(
+          409,
+          'Este colaborador tem histórico no sistema e não pode ser excluído. Desative o acesso em vez disso.',
+        )
+      }
+    }
+
+    const { error: erroExclusao } = await admin.auth.admin.deleteUser(id)
+    if (erroExclusao) throw new ErroHttp(502, 'Não foi possível excluir a conta. Tente novamente.')
+    return resposta({ id })
   })
 }

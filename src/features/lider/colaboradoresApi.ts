@@ -1,18 +1,18 @@
 import { supabase } from '../../data/supabase/client'
 
-export type PapelColaborador = 'fiscal' | 'analista'
+export type PapelColaborador = 'fiscal' | 'analista' | 'lider'
 
 export interface Colaborador {
   id: string
   nome: string
   email: string
-  papel: 'fiscal' | 'analista' | 'lider'
+  papel: 'fiscal' | 'analista' | 'lider' | 'super_admin'
   ativo: boolean
   convitePendente: boolean
   gerenciavel: boolean
 }
 
-async function chamar<T>(metodo: 'GET' | 'POST' | 'PATCH', corpo?: unknown): Promise<T> {
+async function chamar<T>(metodo: 'GET' | 'POST' | 'PATCH' | 'DELETE', corpo?: unknown): Promise<T> {
   if (!supabase) throw new Error('Autenticação não configurada.')
   const { data } = await supabase.auth.getSession()
   const token = data.session?.access_token
@@ -44,9 +44,8 @@ async function chamar<T>(metodo: 'GET' | 'POST' | 'PATCH', corpo?: unknown): Pro
   return json as T
 }
 
-export async function listarColaboradores(): Promise<Colaborador[]> {
-  const { colaboradores } = await chamar<{ colaboradores: Colaborador[] }>('GET')
-  return colaboradores
+export async function listarColaboradores() {
+  return chamar<{ colaboradores: Colaborador[]; meuPapel: 'lider' | 'super_admin' }>('GET')
 }
 
 export function convidarColaborador(dados: { nome: string; email: string; papel: PapelColaborador }) {
@@ -55,4 +54,8 @@ export function convidarColaborador(dados: { nome: string; email: string; papel:
 
 export function alterarAcesso(id: string, ativo: boolean) {
   return chamar<{ id: string; ativo: boolean }>('PATCH', { id, ativo })
+}
+
+export function excluirColaborador(id: string) {
+  return chamar<{ id: string }>('DELETE', { id })
 }

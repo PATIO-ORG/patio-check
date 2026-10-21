@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { GET, PATCH, POST } from './colaboradores.ts'
+import { DELETE, GET, PATCH, POST } from './colaboradores.ts'
 
 // A função de servidor usa o cliente administrador do Supabase. Aqui ele é trocado
 // por uma versão em memória, para testar as regras de autorização sem rede.
@@ -21,6 +21,8 @@ const ID = {
   outroLider: '00000000-0000-4000-8000-000000000002',
   fiscal: '00000000-0000-4000-8000-000000000003',
   analista: '00000000-0000-4000-8000-000000000004',
+  super: '00000000-0000-4000-8000-000000000005',
+  outroSuper: '00000000-0000-4000-8000-000000000006',
   novo: '00000000-0000-4000-8000-000000000099',
 }
 
@@ -33,6 +35,8 @@ interface Estado {
   falhaPapel: boolean
   falhaBanimento: boolean
   emailJaExiste: boolean
+  /** ids que aparecem em tabelas de histórico (check-ins, auditoria…) */
+  comHistorico: string[]
 }
 
 let estado: Estado
@@ -83,9 +87,23 @@ class Consulta {
   }
 }
 
+// Contagem em tabelas de histórico: select(..., { count, head }).eq(coluna, id).
+class ConsultaHistorico {
+  private readonly e: Estado
+  constructor(e: Estado) {
+    this.e = e
+  }
+  select() {
+    return this
+  }
+  eq(_coluna: string, valor: string) {
+    return Promise.resolve({ count: this.e.comHistorico.includes(valor) ? 1 : 0, error: null })
+  }
+}
+
 function criarAdminFalso(e: Estado) {
   return {
-    from: () => new Consulta(e),
+    from: (tabela: string) => (tabela === 'profiles' ? new Consulta(e) : new ConsultaHistorico(e)),
     auth: {
       getUser: async (token: string) => {
         const id = e.tokens[token]
@@ -151,11 +169,14 @@ beforeEach(() => {
       { id: ID.outroLider, nome: 'Leo Líder', email: 'leo@empresa.com', papel: 'lider', ativo: true },
       { id: ID.fiscal, nome: 'Fábio Fiscal', email: 'fabio@empresa.com', papel: 'fiscal', ativo: true },
       { id: ID.analista, nome: 'Ana Analista', email: 'ana@empresa.com', papel: 'analista', ativo: true },
+      { id: ID.super, nome: 'Sol Super', email: 'sol@empresa.com', papel: 'super_admin', ativo: true },
+      { id: ID.outroSuper, nome: 'Sam Super', email: 'sam@empresa.com', papel: 'super_admin', ativo: true },
     ],
     tokens: {
       'token-lider': ID.lider,
       'token-fiscal': ID.fiscal,
       'token-analista': ID.analista,
+      'token-super': ID.super,
     },
     convites: [],
     banimentos: [],
@@ -163,6 +184,7 @@ beforeEach(() => {
     falhaPapel: false,
     falhaBanimento: false,
     emailJaExiste: false,
+    comHistorico: [],
   }
   ;(globalThis as unknown as { __admin: unknown }).__admin = criarAdminFalso(estado)
 })
@@ -205,11 +227,24 @@ describe('GET: listagem', () => {
     const { colaboradores } = (await r.json()) as {
       colaboradores: { id: string; convitePendente: boolean; gerenciavel: boolean }[]
     }
-    expect(colaboradores).toHaveLength(4)
+    expect(colaboradores).toHaveLength(6)
     const ana = colaboradores.find((c) => c.id === ID.analista)
     expect(ana?.convitePendente).toBe(true)
     expect(ana?.gerenciavel).toBe(true)
     expect(colaboradores.find((c) => c.id === ID.outroLider)?.gerenciavel).toBe(false)
+    expect(colaboradores.find((c) => c.id === ID.lider)?.gerenciavel).toBe(false)
+    expect(colaboradores.find((c) => c.id === ID.super)?.gerenciavel).toBe(false)
+  })
+
+  it('para o Super Admin, líderes também são gerenciáveis, mas outro Super Admin e ele mesmo não', async () => {
+    const r = await chamar(GET, { token: 'token-super' })
+    const corpo = (await r.json()) as { meuPapel: string; colaboradores: { id: string; gerenciavel: boolean }[] }
+    expect(corpo.meuPapel).toBe('super_admin')
+    const por = (id: string) => corpo.colaboradores.find((c) => c.id === id)?.gerenciavel
+    expect(por(ID.lider)).toBe(true)
+    expect(por(ID.fiscal)).toBe(true)
+    expect(por(ID.super)).toBe(false)
+    expect(por(ID.outroSuper)).toBe(false)
   })
 })
 
@@ -322,5 +357,88 @@ describe('PATCH: ativar e desativar', () => {
     const r = await chamar(PATCH, { token: 'token-lider', corpo: { id: ID.fiscal, ativo: false } })
     expect(r.status).toBe(502)
     expect(estado.perfis.find((p) => p.id === ID.fiscal)?.ativo).toBe(false)
+  })
+})
+
+describe('Super Admin', () => {
+  it('cadastra um líder', async () => {
+    const r = await chamar(POST, {
+      token: 'token-super',
+      corpo: { nome: 'Novo Líder', email: 'lider@empresa.com', papel: 'lider' },
+    })
+    expect(r.status).toBe(201)
+    expect(estado.perfis.find((p) => p.id === ID.novo)?.papel).toBe('lider')
+  })
+
+  it('nunca cria outro Super Admin por essa rota', async () => {
+    const r = await chamar(POST, {
+      token: 'token-super',
+      corpo: { nome: 'Fulano', email: 'fulano@empresa.com', papel: 'super_admin' },
+    })
+    expect(r.status).toBe(403)
+    expect(estado.convites).toHaveLength(0)
+  })
+
+  it('desativa e reativa um líder', async () => {
+    const off = await chamar(PATCH, { token: 'token-super', corpo: { id: ID.outroLider, ativo: false } })
+    expect(off.status).toBe(200)
+    expect(estado.perfis.find((p) => p.id === ID.outroLider)?.ativo).toBe(false)
+    const on = await chamar(PATCH, { token: 'token-super', corpo: { id: ID.outroLider, ativo: true } })
+    expect(on.status).toBe(200)
+    expect(estado.perfis.find((p) => p.id === ID.outroLider)?.ativo).toBe(true)
+  })
+
+  it('ninguém altera ou exclui um Super Admin, nem outro Super Admin', async () => {
+    for (const token of ['token-super', 'token-lider']) {
+      const alvo = token === 'token-super' ? ID.outroSuper : ID.super
+      expect((await chamar(PATCH, { token, corpo: { id: alvo, ativo: false } })).status).toBe(403)
+      expect((await chamar(DELETE, { token, corpo: { id: alvo } })).status).toBe(403)
+    }
+    expect(estado.removidos).toEqual([])
+    expect(estado.perfis.find((p) => p.id === ID.super)?.ativo).toBe(true)
+  })
+
+  it('exclui um líder sem histórico', async () => {
+    const r = await chamar(DELETE, { token: 'token-super', corpo: { id: ID.outroLider } })
+    expect(r.status).toBe(200)
+    expect(estado.removidos).toEqual([ID.outroLider])
+  })
+
+  it('não exclui a si mesmo', async () => {
+    const r = await chamar(DELETE, { token: 'token-super', corpo: { id: ID.super } })
+    expect(r.status).toBe(400)
+  })
+})
+
+describe('DELETE: excluir colaborador', () => {
+  it('líder exclui fiscal sem histórico', async () => {
+    const r = await chamar(DELETE, { token: 'token-lider', corpo: { id: ID.fiscal } })
+    expect(r.status).toBe(200)
+    expect(estado.removidos).toEqual([ID.fiscal])
+  })
+
+  it('recusa quando a pessoa tem histórico e orienta a desativar', async () => {
+    estado.comHistorico = [ID.fiscal]
+    const r = await chamar(DELETE, { token: 'token-lider', corpo: { id: ID.fiscal } })
+    expect(r.status).toBe(409)
+    expect(estado.removidos).toEqual([])
+  })
+
+  it('líder não exclui outro líder nem a si mesmo', async () => {
+    expect((await chamar(DELETE, { token: 'token-lider', corpo: { id: ID.outroLider } })).status).toBe(403)
+    expect((await chamar(DELETE, { token: 'token-lider', corpo: { id: ID.lider } })).status).toBe(400)
+    expect(estado.removidos).toEqual([])
+  })
+
+  it('fiscal e analista não excluem ninguém', async () => {
+    expect((await chamar(DELETE, { token: 'token-fiscal', corpo: { id: ID.analista } })).status).toBe(403)
+    expect((await chamar(DELETE, { token: 'token-analista', corpo: { id: ID.fiscal } })).status).toBe(403)
+  })
+
+  it('valida o id e a existência', async () => {
+    expect((await chamar(DELETE, { token: 'token-lider', corpo: { id: 'x' } })).status).toBe(400)
+    expect(
+      (await chamar(DELETE, { token: 'token-lider', corpo: { id: '00000000-0000-4000-8000-0000000000aa' } })).status,
+    ).toBe(404)
   })
 })

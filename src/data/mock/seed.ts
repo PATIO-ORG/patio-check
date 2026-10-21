@@ -89,6 +89,7 @@ export const USUARIOS: Usuario[] = [
   { id: 'u-analista-1', nome: 'Marcos Vinholi', email: 'marcos.vinholi@spx.local', papel: 'analista', ativo: true },
   { id: 'u-analista-2', nome: 'Tatiane Serra', email: 'tatiane.serra@spx.local', papel: 'analista', ativo: true },
   { id: 'u-lider-1', nome: 'Cláudia Bastos', email: 'claudia.bastos@spx.local', papel: 'lider', ativo: true },
+  { id: 'u-super-1', nome: 'Rafael Moreira', email: 'rafael.moreira@spx.local', papel: 'super_admin', ativo: true },
 ]
 
 const FISCAIS = USUARIOS.filter((u) => u.papel === 'fiscal')

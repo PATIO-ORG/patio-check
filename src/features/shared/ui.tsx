@@ -106,10 +106,13 @@ export function Botao({
   variante = 'primario',
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variante?: 'primario' | 'perigo' | 'neutro' | 'fantasma'
+  variante?: 'primario' | 'perigo' | 'neutro' | 'fantasma' | 'sucesso' | 'perigo-suave'
 }) {
   const estilos = {
-    primario: 'bg-asfalto text-concreto shadow-[0_2px_8px_-2px_rgba(27,30,36,0.45)] hover:bg-asfalto-2 disabled:bg-brita-2 disabled:shadow-none',
+    primario: 'bg-acao text-acao-texto shadow-[0_2px_8px_-2px_rgba(27,30,36,0.45)] hover:bg-acao-hover disabled:bg-brita-2 disabled:text-concreto disabled:shadow-none',
+    // Reativar: verde de "liberado", legível nos dois temas (tokens -ink/-fraca mudam no escuro).
+    sucesso: 'border border-liberado/50 bg-liberado-fraca text-liberado-ink hover:border-liberado disabled:opacity-50',
+    'perigo-suave': 'border border-sinal/40 bg-sinal-fraca text-sinal-ink hover:border-sinal disabled:opacity-50',
     perigo: 'bg-sinal text-white shadow-[0_2px_8px_-2px_rgba(192,39,27,0.45)] hover:brightness-110 disabled:bg-brita-2 disabled:shadow-none',
     neutro: 'bg-superficie text-ink border border-linha hover:border-ink',
     fantasma: 'text-brita hover:text-ink',

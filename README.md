@@ -70,8 +70,22 @@ passa a controlar a própria equipe pelo menu **Colaboradores**:
   por e-mail e cria a própria senha em `/definir-senha`. O Líder nunca vê senhas.
 - **Desativar / reativar:** bloqueia ou libera o acesso na hora. O histórico de
   check-ins e auditoria da pessoa é mantido.
-- **Limites de segurança:** ninguém vira Líder por essa tela, o Líder não desativa a si
-  mesmo nem outro Líder, e as regras valem no servidor, não só na tela.
+- **Excluir:** apaga a conta de quem nunca usou o sistema (ex.: convite enviado por
+  engano). Quem já tem check-ins, escalas ou auditoria só pode ser desativado, para não
+  quebrar o histórico.
+- **Limites de segurança:** o Líder não cria líderes nem mexe em si mesmo ou em outro
+  Líder, e as regras valem no servidor, não só na tela.
+
+### Super Admin
+
+Perfil acima de todos: faz tudo que o Líder faz e também cadastra, desativa, reativa e
+exclui **Líderes**. Ninguém altera um Super Admin pela tela (nem outro Super Admin) — a
+conta só é criada pelos desenvolvedores, depois de aplicar a migração
+`20261021200000_super_admin.sql`:
+
+```sql
+update public.profiles set papel = 'super_admin' where email = '...';
+```
 
 Configuração necessária no Supabase:
 

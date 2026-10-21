@@ -80,7 +80,7 @@ export function resolverBloqueio(input: {
       erro:
         papel === 'fiscal'
           ? 'Fiscal de pátio não pode resolver bloqueio. Acione um analista.'
-          : 'Liderança acompanha o pátio, mas quem resolve bloqueio é o analista.',
+          : 'Liderança e administração acompanham o pátio, mas quem resolve bloqueio é o analista.',
     }
   }
   if (status !== 'bloqueado') {
@@ -104,7 +104,14 @@ export function podeEditarEscala(papel: Papel): boolean {
 }
 
 export function podeGerenciarColaboradores(papel: Papel): boolean {
-  return papel === 'lider'
+  return papel === 'lider' || papel === 'super_admin'
+}
+
+/** Hierarquia de gestão: só gerencia quem está num degrau acima do alvo. */
+const NIVEL_PAPEL: Record<Papel, number> = { fiscal: 1, analista: 1, lider: 2, super_admin: 3 }
+
+export function podeGerenciarPapel(ator: Papel, alvo: Papel): boolean {
+  return NIVEL_PAPEL[ator] > NIVEL_PAPEL[alvo]
 }
 
 export function podeResolverBloqueio(papel: Papel): boolean {

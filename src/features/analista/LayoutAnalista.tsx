@@ -169,7 +169,7 @@ export function LayoutAnalista() {
               barraFixa ? 'anim-barra fixed inset-x-0 top-0 z-20 lg:left-52' : 'relative z-20'
             }`}
           >
-            <p className="rotulo text-[13px] text-brita">{usuario?.papel === 'lider' ? 'Liderança' : 'Analista'}</p>
+            <p className="rotulo text-[13px] text-brita">{usuario?.papel === 'super_admin' ? 'Super Admin' : usuario?.papel === 'lider' ? 'Liderança' : 'Analista'}</p>
             <div className="flex flex-wrap items-center justify-end gap-x-2 gap-y-2 sm:gap-x-3">
               {MODO_DEMONSTRACAO && (
                 <button
