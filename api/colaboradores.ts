@@ -6,11 +6,11 @@
 //   2. confere no banco se essa pessoa é um Líder ativo;
 //   3. só então usa a chave de administrador.
 //
-// Hierarquia: Super Admin > Líder > Fiscal/Analista. Só se gerencia quem está num
-// degrau abaixo: o Líder cria, desativa, reativa e exclui Fiscais e Analistas; o
-// Super Admin faz o mesmo com Líderes também. Ninguém gerencia a si mesmo, quem
-// está no mesmo degrau, nem o Super Admin (não há ninguém acima dele — essa conta
-// só é criada/alterada direto no banco, pelos desenvolvedores).
+// Hierarquia: Super Admin > Líder > Fiscal/Analista. O Líder cria, desativa, reativa
+// e exclui Fiscais, Analistas e outros Líderes; o Super Admin faz o mesmo com todos.
+// Ninguém gerencia a si mesmo. O Super Admin não aparece na lista e nunca é alterado
+// por aqui (não há ninguém acima dele — essa conta só é criada/alterada direto no
+// banco, pelos desenvolvedores).
 //
 // Mantido em um único arquivo de propósito: a Vercel compila cada arquivo de /api
 // de forma isolada, então evitamos imports relativos entre eles.
@@ -24,9 +24,9 @@ const NIVEL: Record<Papel, number> = { fiscal: 1, analista: 1, lider: 2, super_a
 function nivel(papel: unknown): number {
   return typeof papel === 'string' && papel in NIVEL ? NIVEL[papel as Papel] : Infinity
 }
-// Papéis que `ator` pode atribuir/gerenciar: apenas os de nível inferior ao dele.
+// Papéis que `ator` pode atribuir/gerenciar: até o próprio nível, e nunca o Super Admin.
 function podeGerenciar(ator: Papel, alvo: unknown): boolean {
-  return nivel(alvo) < NIVEL[ator]
+  return alvo !== 'super_admin' && nivel(alvo) <= NIVEL[ator]
 }
 
 // Tabelas que guardam quem fez o quê. Quem aparece nelas não pode ser excluído:
@@ -132,6 +132,7 @@ export function GET(request: Request) {
     const { data: perfis, error } = await admin
       .from('profiles')
       .select('id, nome, email, papel, ativo')
+      .neq('papel', 'super_admin') // Super Admin é invisível na lista de colaboradores
       .order('nome', { ascending: true })
     if (error) throw new ErroHttp(500, 'Não foi possível listar os colaboradores.')
 
@@ -169,9 +170,7 @@ export function POST(request: Request) {
     if (!podeGerenciar(ator.papel, papel)) {
       throw new ErroHttp(
         403,
-        ator.papel === 'super_admin'
-          ? 'Só é possível cadastrar Líderes, Fiscais e Analistas.'
-          : 'Só é possível cadastrar Fiscais e Analistas.',
+        'Só é possível cadastrar Líderes, Fiscais e Analistas.',
       )
     }
 
@@ -190,6 +189,13 @@ export function POST(request: Request) {
     if (erroConvite || !convite.user) {
       const jaExiste = erroConvite?.code === 'email_exists' || /already.*registered/i.test(erroConvite?.message ?? '')
       if (jaExiste) throw new ErroHttp(409, 'Já existe uma conta com este e-mail.')
+      const limite = erroConvite?.code === 'over_email_send_rate_limit' || /rate limit/i.test(erroConvite?.message ?? '')
+      if (limite) {
+        throw new ErroHttp(
+          429,
+          'Limite de e-mails do Supabase atingido. Aguarde cerca de 1 hora ou configure um SMTP próprio no Supabase (Authentication → Emails → SMTP Settings).',
+        )
+      }
       throw new ErroHttp(502, `Não foi possível enviar o convite: ${erroConvite?.message ?? 'erro desconhecido'}`)
     }
 

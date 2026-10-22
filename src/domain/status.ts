@@ -74,7 +74,7 @@ export function resolverBloqueio(input: {
 }): Resultado {
   const { status, papel, decisao, justificativa } = input
 
-  if (papel !== 'analista') {
+  if (papel !== 'analista' && papel !== 'super_admin') {
     return {
       ok: false,
       erro:
@@ -100,22 +100,22 @@ export function resolverBloqueio(input: {
 }
 
 export function podeEditarEscala(papel: Papel): boolean {
-  return papel === 'analista'
+  return papel === 'analista' || papel === 'super_admin'
 }
 
 export function podeGerenciarColaboradores(papel: Papel): boolean {
   return papel === 'lider' || papel === 'super_admin'
 }
 
-/** Hierarquia de gestão: só gerencia quem está num degrau acima do alvo. */
+/** Líder gerencia Fiscal, Analista e Líder; Super Admin gerencia todos; ninguém gerencia Super Admin. */
 const NIVEL_PAPEL: Record<Papel, number> = { fiscal: 1, analista: 1, lider: 2, super_admin: 3 }
 
 export function podeGerenciarPapel(ator: Papel, alvo: Papel): boolean {
-  return NIVEL_PAPEL[ator] > NIVEL_PAPEL[alvo]
+  return alvo !== 'super_admin' && NIVEL_PAPEL[alvo] <= NIVEL_PAPEL[ator]
 }
 
 export function podeResolverBloqueio(papel: Papel): boolean {
-  return papel === 'analista'
+  return papel === 'analista' || papel === 'super_admin'
 }
 
 export function podeRegistrarCheckin(papel: Papel): boolean {

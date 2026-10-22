@@ -73,15 +73,15 @@ passa a controlar a própria equipe pelo menu **Colaboradores**:
 - **Excluir:** apaga a conta de quem nunca usou o sistema (ex.: convite enviado por
   engano). Quem já tem check-ins, escalas ou auditoria só pode ser desativado, para não
   quebrar o histórico.
-- **Limites de segurança:** o Líder não cria líderes nem mexe em si mesmo ou em outro
-  Líder, e as regras valem no servidor, não só na tela.
+- **Quem gerencia quem:** o Líder cadastra, desativa, reativa e exclui Fiscais, Analistas
+  e outros Líderes (nunca a si mesmo). As regras valem no servidor, não só na tela.
 
 ### Super Admin
 
-Perfil acima de todos: faz tudo que o Líder faz e também cadastra, desativa, reativa e
-exclui **Líderes**. Ninguém altera um Super Admin pela tela (nem outro Super Admin) — a
-conta só é criada pelos desenvolvedores, depois de aplicar a migração
-`20261021200000_super_admin.sql`:
+Poder total sobre o sistema: gerencia todos os perfis, além de editar a escala e resolver
+bloqueios como o analista. **Não aparece** na lista de Colaboradores e ninguém o altera,
+desativa ou exclui pela tela. A conta só é criada pelos desenvolvedores, depois de aplicar as
+migrações `20261021200000_super_admin.sql` e `20261021210000_super_admin_poder_total.sql`:
 
 ```sql
 update public.profiles set papel = 'super_admin' where email = '...';

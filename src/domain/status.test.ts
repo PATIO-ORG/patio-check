@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { chegouForaDaOnda, registrarCheckin, resolverBloqueio, podeEditarEscala, podeGerenciarColaboradores, podeGerenciarPapel } from './status'
 
 describe('podeGerenciarColaboradores', () => {
-  it('permite apenas ao líder', () => {
+  it('permite apenas a líder e super admin', () => {
     expect(podeGerenciarColaboradores('lider')).toBe(true)
     expect(podeGerenciarColaboradores('analista')).toBe(false)
     expect(podeGerenciarColaboradores('fiscal')).toBe(false)
@@ -154,14 +154,21 @@ describe('chegouForaDaOnda', () => {
 })
 
 describe('podeGerenciarPapel', () => {
-  it('só gerencia quem está abaixo na hierarquia', () => {
+  it('líder gerencia até líder; ninguém gerencia super admin', () => {
     expect(podeGerenciarColaboradores('super_admin')).toBe(true)
     expect(podeGerenciarPapel('super_admin', 'lider')).toBe(true)
     expect(podeGerenciarPapel('lider', 'fiscal')).toBe(true)
     expect(podeGerenciarPapel('lider', 'analista')).toBe(true)
-    expect(podeGerenciarPapel('lider', 'lider')).toBe(false)
+    expect(podeGerenciarPapel('lider', 'lider')).toBe(true)
     expect(podeGerenciarPapel('super_admin', 'super_admin')).toBe(false)
     expect(podeGerenciarPapel('lider', 'super_admin')).toBe(false)
     expect(podeGerenciarPapel('analista', 'fiscal')).toBe(false)
+  })
+})
+
+describe('poder do super admin', () => {
+  it('edita escala e resolve bloqueio como o analista', () => {
+    expect(podeEditarEscala('super_admin')).toBe(true)
+    expect(podeEditarEscala('lider')).toBe(false)
   })
 })

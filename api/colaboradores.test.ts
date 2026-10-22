@@ -62,6 +62,10 @@ class Consulta {
     this.mudanca = mudanca
     return this
   }
+  neq(coluna: keyof Perfil, valor: unknown) {
+    this.filtros.push((p) => p[coluna] !== valor)
+    return this
+  }
   eq(coluna: keyof Perfil, valor: unknown) {
     this.filtros.push((p) => p[coluna] === valor)
     return this
@@ -227,24 +231,21 @@ describe('GET: listagem', () => {
     const { colaboradores } = (await r.json()) as {
       colaboradores: { id: string; convitePendente: boolean; gerenciavel: boolean }[]
     }
-    expect(colaboradores).toHaveLength(6)
+    expect(colaboradores).toHaveLength(4) // Super Admins ficam fora da lista
+    expect(colaboradores.find((c) => c.id === ID.super)).toBe(undefined)
     const ana = colaboradores.find((c) => c.id === ID.analista)
     expect(ana?.convitePendente).toBe(true)
     expect(ana?.gerenciavel).toBe(true)
-    expect(colaboradores.find((c) => c.id === ID.outroLider)?.gerenciavel).toBe(false)
-    expect(colaboradores.find((c) => c.id === ID.lider)?.gerenciavel).toBe(false)
-    expect(colaboradores.find((c) => c.id === ID.super)?.gerenciavel).toBe(false)
+    expect(colaboradores.find((c) => c.id === ID.outroLider)?.gerenciavel).toBe(true)
+    expect(colaboradores.find((c) => c.id === ID.lider)?.gerenciavel).toBe(false) // a si mesmo, não
   })
 
-  it('para o Super Admin, líderes também são gerenciáveis, mas outro Super Admin e ele mesmo não', async () => {
+  it('o Super Admin também não vê a si mesmo nem outros Super Admins, mas gerencia todo o resto', async () => {
     const r = await chamar(GET, { token: 'token-super' })
     const corpo = (await r.json()) as { meuPapel: string; colaboradores: { id: string; gerenciavel: boolean }[] }
     expect(corpo.meuPapel).toBe('super_admin')
-    const por = (id: string) => corpo.colaboradores.find((c) => c.id === id)?.gerenciavel
-    expect(por(ID.lider)).toBe(true)
-    expect(por(ID.fiscal)).toBe(true)
-    expect(por(ID.super)).toBe(false)
-    expect(por(ID.outroSuper)).toBe(false)
+    expect(corpo.colaboradores.map((c) => c.id).sort()).toEqual([ID.lider, ID.outroLider, ID.fiscal, ID.analista].sort())
+    expect(corpo.colaboradores.every((c) => c.gerenciavel)).toBe(true)
   })
 })
 
@@ -263,13 +264,18 @@ describe('POST: cadastrar colaborador', () => {
     expect(perfil?.nome).toBe('Nova Pessoa')
   })
 
-  it('nunca cria líder por essa rota', async () => {
-    const r = await chamar(POST, {
+  it('líder pode convidar outro líder, mas nunca um Super Admin', async () => {
+    const ok = await chamar(POST, {
       token: 'token-lider',
       corpo: { nome: 'Fulano', email: 'fulano@empresa.com', papel: 'lider' },
     })
-    expect(r.status).toBe(403)
-    expect(estado.convites).toHaveLength(0)
+    expect(ok.status).toBe(201)
+    const no = await chamar(POST, {
+      token: 'token-lider',
+      corpo: { nome: 'Beltrano', email: 'beltrano@empresa.com', papel: 'super_admin' },
+    })
+    expect(no.status).toBe(403)
+    expect(estado.convites).toHaveLength(1)
   })
 
   it('valida nome e e-mail', async () => {
@@ -336,10 +342,10 @@ describe('PATCH: ativar e desativar', () => {
     expect(estado.perfis[0].ativo).toBe(true)
   })
 
-  it('não mexe em outro líder', async () => {
+  it('líder desativa outro líder', async () => {
     const r = await chamar(PATCH, { token: 'token-lider', corpo: { id: ID.outroLider, ativo: false } })
-    expect(r.status).toBe(403)
-    expect(estado.perfis[1].ativo).toBe(true)
+    expect(r.status).toBe(200)
+    expect(estado.perfis[1].ativo).toBe(false)
   })
 
   it('trata id inválido e colaborador inexistente', async () => {
@@ -389,7 +395,7 @@ describe('Super Admin', () => {
   })
 
   it('ninguém altera ou exclui um Super Admin, nem outro Super Admin', async () => {
-    for (const token of ['token-super', 'token-lider']) {
+    for (const token of ['token-super', 'token-lider']) { // líder nem enxerga o Super Admin
       const alvo = token === 'token-super' ? ID.outroSuper : ID.super
       expect((await chamar(PATCH, { token, corpo: { id: alvo, ativo: false } })).status).toBe(403)
       expect((await chamar(DELETE, { token, corpo: { id: alvo } })).status).toBe(403)
@@ -424,10 +430,10 @@ describe('DELETE: excluir colaborador', () => {
     expect(estado.removidos).toEqual([])
   })
 
-  it('líder não exclui outro líder nem a si mesmo', async () => {
-    expect((await chamar(DELETE, { token: 'token-lider', corpo: { id: ID.outroLider } })).status).toBe(403)
+  it('líder exclui outro líder, mas não a si mesmo', async () => {
     expect((await chamar(DELETE, { token: 'token-lider', corpo: { id: ID.lider } })).status).toBe(400)
-    expect(estado.removidos).toEqual([])
+    expect((await chamar(DELETE, { token: 'token-lider', corpo: { id: ID.outroLider } })).status).toBe(200)
+    expect(estado.removidos).toEqual([ID.outroLider])
   })
 
   it('fiscal e analista não excluem ninguém', async () => {

@@ -33,7 +33,6 @@ function situacao(c: Colaborador) {
 
 export function Colaboradores() {
   const [lista, setLista] = useState<Colaborador[] | null>(null)
-  const [meuPapel, setMeuPapel] = useState<'lider' | 'super_admin'>('lider')
   const [erroLista, setErroLista] = useState('')
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
@@ -44,9 +43,7 @@ export function Colaboradores() {
 
   const carregar = useCallback(async () => {
     try {
-      const resposta = await listarColaboradores()
-      setLista(resposta.colaboradores)
-      setMeuPapel(resposta.meuPapel)
+      setLista((await listarColaboradores()).colaboradores)
       setErroLista('')
     } catch (erro) {
       setErroLista(erro instanceof Error ? erro.message : String(erro))
@@ -130,7 +127,7 @@ export function Colaboradores() {
       <header>
         <h1 className="font-display text-2xl font-extrabold">Colaboradores</h1>
         <p className="mt-1 text-sm text-brita">
-          {meuPapel === 'super_admin' ? 'Cadastre Líderes, Fiscais e Analistas' : 'Cadastre Fiscais e Analistas'} e controle quem tem acesso. Cada pessoa recebe um convite por
+          Cadastre Líderes, Fiscais e Analistas e controle quem tem acesso. Cada pessoa recebe um convite por
           e-mail e cria a própria senha.
         </p>
       </header>
@@ -151,7 +148,7 @@ export function Colaboradores() {
             <select value={papel} onChange={(e) => setPapel(e.target.value as PapelColaborador)} className={campo}>
               <option value="fiscal">Fiscal de pátio</option>
               <option value="analista">Analista</option>
-              {meuPapel === 'super_admin' && <option value="lider">Líder</option>}
+              <option value="lider">Líder</option>
             </select>
           </label>
           <div className="flex items-end">
