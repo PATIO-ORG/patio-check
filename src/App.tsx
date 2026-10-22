@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useSessao } from './auth/sessao'
+import { conviteEmAndamento } from './auth/conviteNaUrl'
 import { Login } from './features/shared/Login'
 import { DefinirSenha } from './features/shared/DefinirSenha'
 import { Colaboradores } from './features/lider/Colaboradores'
@@ -20,7 +21,7 @@ export function App() {
   const { pathname } = useLocation()
 
   // Link do convite por e-mail: a pessoa define a senha antes de usar o sistema.
-  if (pathname === '/definir-senha') return <DefinirSenha />
+  if (pathname === '/definir-senha' || conviteEmAndamento()) return <DefinirSenha />
 
   if (carregando) {
     return <main className="grid min-h-dvh place-items-center bg-concreto text-brita">Carregando sessão…</main>

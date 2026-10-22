@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../data/supabase/client'
+import { encerrarConvite } from '../../auth/conviteNaUrl'
 
 type Etapa = 'verificando' | 'pronto' | 'invalido'
 
@@ -9,7 +9,6 @@ const SENHA_MINIMA = 8
 // Página de destino do link de convite: o Supabase abre uma sessão temporária e
 // aqui a pessoa escolhe a própria senha.
 export function DefinirSenha() {
-  const navegar = useNavigate()
   const [etapa, setEtapa] = useState<Etapa>('verificando')
   const [senha, setSenha] = useState('')
   const [confirmacao, setConfirmacao] = useState('')
@@ -50,7 +49,9 @@ export function DefinirSenha() {
       setErro(`Não foi possível salvar a senha: ${error.message}`)
       return
     }
-    navegar('/', { replace: true })
+    encerrarConvite()
+    // Recarrega na raiz: a sessão já está salva e o app abre direto no painel certo.
+    window.location.replace(import.meta.env.BASE_URL)
   }
 
   const campo = 'rounded-chip border border-asfalto-3 bg-asfalto px-3 py-2.5 text-concreto'
@@ -69,7 +70,7 @@ export function DefinirSenha() {
               Este link de convite é inválido ou expirou.
             </p>
             <p className="mt-2 text-sm text-brita-2">Peça ao seu Líder para enviar um novo convite.</p>
-            <a href="/" className="mt-4 inline-block text-sm font-semibold text-demarcacao underline">
+            <a href="/" onClick={encerrarConvite} className="mt-4 inline-block text-sm font-semibold text-demarcacao underline">
               Ir para o login
             </a>
           </>
