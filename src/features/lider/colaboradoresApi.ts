@@ -8,11 +8,11 @@ export interface Colaborador {
   email: string
   papel: 'fiscal' | 'analista' | 'lider' | 'super_admin'
   ativo: boolean
-  convitePendente: boolean
+  aguardandoSenha: boolean
   gerenciavel: boolean
 }
 
-async function chamar<T>(metodo: 'GET' | 'POST' | 'PATCH' | 'DELETE', corpo?: unknown): Promise<T> {
+async function chamar<T>(metodo: 'GET' | 'POST' | 'PATCH' | 'DELETE' | 'PUT', corpo?: unknown): Promise<T> {
   if (!supabase) throw new Error('Autenticação não configurada.')
   const { data } = await supabase.auth.getSession()
   const token = data.session?.access_token
@@ -58,4 +58,8 @@ export function alterarAcesso(id: string, ativo: boolean) {
 
 export function excluirColaborador(id: string) {
   return chamar<{ id: string }>('DELETE', { id })
+}
+
+export function redefinirSenha(id: string) {
+  return chamar<{ id: string }>('PUT', { id })
 }

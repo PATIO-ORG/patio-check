@@ -6,6 +6,8 @@ export interface Usuario {
   email: string
   papel: Papel
   ativo: boolean
+  /** Primeiro acesso ou senha redefinida pelo Líder: precisa criar uma senha. */
+  precisaSenha?: boolean
 }
 
 export interface Motorista {

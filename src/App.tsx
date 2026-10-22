@@ -1,6 +1,5 @@
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import { useSessao } from './auth/sessao'
-import { conviteEmAndamento } from './auth/conviteNaUrl'
 import { Login } from './features/shared/Login'
 import { DefinirSenha } from './features/shared/DefinirSenha'
 import { Colaboradores } from './features/lider/Colaboradores'
@@ -18,15 +17,14 @@ import { Auditoria } from './features/analista/Auditoria'
 
 export function App() {
   const { usuario, carregando } = useSessao()
-  const { pathname } = useLocation()
-
-  // Link do convite por e-mail: a pessoa define a senha antes de usar o sistema.
-  if (pathname === '/definir-senha' || conviteEmAndamento()) return <DefinirSenha />
 
   if (carregando) {
     return <main className="grid min-h-dvh place-items-center bg-concreto text-brita">Carregando sessão…</main>
   }
   if (!usuario) return <Login />
+
+  // Primeiro acesso ou senha redefinida: ninguém usa o sistema sem criar a própria senha.
+  if (usuario.precisaSenha) return <DefinirSenha />
 
   if (usuario.papel === 'fiscal') {
     return (

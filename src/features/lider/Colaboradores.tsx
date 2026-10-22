@@ -6,6 +6,7 @@ import {
   convidarColaborador,
   excluirColaborador,
   listarColaboradores,
+  redefinirSenha,
 } from './colaboradoresApi'
 import type { Colaborador, PapelColaborador } from './colaboradoresApi'
 
@@ -27,7 +28,7 @@ function IconeReativar() {
 
 function situacao(c: Colaborador) {
   if (!c.ativo) return { texto: 'Desativado', classe: 'bg-sinal-fraca text-sinal-ink' }
-  if (c.convitePendente) return { texto: 'Convite pendente', classe: 'bg-ressalva-fraca text-ressalva-ink' }
+  if (c.aguardandoSenha) return { texto: 'Aguardando 1º acesso', classe: 'bg-ressalva-fraca text-ressalva-ink' }
   return { texto: 'Ativo', classe: 'bg-liberado-fraca text-liberado-ink' }
 }
 
@@ -72,7 +73,7 @@ export function Colaboradores() {
     setEnviando(true)
     try {
       await convidarColaborador({ nome: nome.trim(), email: email.trim(), papel })
-      setAviso({ tipo: 'ok', texto: `Convite enviado para ${email.trim()}. A pessoa define a própria senha pelo link do e-mail.` })
+      setAviso({ tipo: 'ok', texto: `Colaborador cadastrado. Peça para ${email.trim()} entrar só com o e-mail na tela de login e criar a senha.` })
       setNome('')
       setEmail('')
       setPapel('fiscal')
@@ -94,6 +95,21 @@ export function Colaboradores() {
     try {
       await alterarAcesso(c.id, !c.ativo)
       setAviso({ tipo: 'ok', texto: desativar ? `${c.nome} foi desativado.` : `${c.nome} foi reativado.` })
+    } catch (erro) {
+      setAviso({ tipo: 'erro', texto: erro instanceof Error ? erro.message : String(erro) })
+    } finally {
+      setOcupado(null)
+      await carregar()
+    }
+  }
+
+  async function redefinir(c: Colaborador) {
+    if (!confirm(`Redefinir a senha de ${c.nome}? A senha atual deixa de valer. Na próxima vez, a pessoa digita só o e-mail na tela de login, entra sem senha e cria uma nova.`)) return
+    setAviso(null)
+    setOcupado(c.id)
+    try {
+      await redefinirSenha(c.id)
+      setAviso({ tipo: 'ok', texto: `Senha de ${c.nome} redefinida. Peça para a pessoa entrar só com o e-mail (${c.email}) e criar uma nova senha.` })
     } catch (erro) {
       setAviso({ tipo: 'erro', texto: erro instanceof Error ? erro.message : String(erro) })
     } finally {
@@ -127,8 +143,8 @@ export function Colaboradores() {
       <header>
         <h1 className="font-display text-2xl font-extrabold">Colaboradores</h1>
         <p className="mt-1 text-sm text-brita">
-          Cadastre Líderes, Fiscais e Analistas e controle quem tem acesso. Cada pessoa recebe um convite por
-          e-mail e cria a própria senha.
+          Cadastre Líderes, Fiscais e Analistas e controle quem tem acesso. Nenhum e-mail é enviado: a pessoa digita
+          só o e-mail na tela de login, entra sem senha e cria a própria senha.
         </p>
       </header>
 
@@ -153,7 +169,7 @@ export function Colaboradores() {
           </label>
           <div className="flex items-end">
             <Botao type="submit" disabled={enviando} className="w-full sm:w-auto">
-              {enviando ? 'Enviando…' : 'Enviar convite'}
+              {enviando ? 'Cadastrando…' : 'Cadastrar'}
             </Botao>
           </div>
         </form>
@@ -187,7 +203,7 @@ export function Colaboradores() {
                   </div>
                   <span className="rotulo rounded-full bg-concreto px-2.5 py-1 text-ink">{ROTULO_PAPEL[c.papel]}</span>
                   <span className={`rotulo rounded-full px-2.5 py-1 ${s.classe}`}>{s.texto}</span>
-                  <div className="flex w-full items-center justify-end gap-2 sm:w-[212px]">
+                  <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-[300px]">
                     {c.gerenciavel && (
                       <>
                         {c.ativo ? (
@@ -200,6 +216,11 @@ export function Colaboradores() {
                               <IconeReativar />
                               Reativar
                             </span>
+                          </Botao>
+                        )}
+                        {c.ativo && (
+                          <Botao variante="neutro" disabled={ocupado === c.id} onClick={() => void redefinir(c)}>
+                            Redefinir senha
                           </Botao>
                         )}
                         <Botao

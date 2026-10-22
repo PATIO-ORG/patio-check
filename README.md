@@ -66,8 +66,13 @@ Depois do primeiro Líder criado pelos desenvolvedores (conta em **Authenticatio
 Users** + `update public.profiles set papel = 'lider' where email = '...';`), a empresa
 passa a controlar a própria equipe pelo menu **Colaboradores**:
 
-- **Cadastrar:** nome, e-mail e função (Fiscal ou Analista). A pessoa recebe um convite
-  por e-mail e cria a própria senha em `/definir-senha`. O Líder nunca vê senhas.
+- **Cadastrar:** nome, e-mail e função. **Nenhum e-mail é enviado.** A pessoa abre o
+  sistema, digita só o e-mail (senha em branco) e entra; em seguida é obrigada a criar a
+  própria senha. O Líder nunca vê senhas.
+- **Redefinir senha:** o Líder invalida a senha atual; a pessoa volta a entrar só com o
+  e-mail e cria uma nova. Enquanto a conta estiver "Aguardando 1º acesso", qualquer um que
+  saiba o e-mail consegue entrar sem senha, então avise a pessoa logo após cadastrar ou
+  redefinir.
 - **Desativar / reativar:** bloqueia ou libera o acesso na hora. O histórico de
   check-ins e auditoria da pessoa é mantido.
 - **Excluir:** apaga a conta de quem nunca usou o sistema (ex.: convite enviado por
@@ -81,7 +86,8 @@ passa a controlar a própria equipe pelo menu **Colaboradores**:
 Poder total sobre o sistema: gerencia todos os perfis, além de editar a escala e resolver
 bloqueios como o analista. **Não aparece** na lista de Colaboradores e ninguém o altera,
 desativa ou exclui pela tela. A conta só é criada pelos desenvolvedores, depois de aplicar as
-migrações `20261021200000_super_admin.sql` e `20261021210000_super_admin_poder_total.sql`:
+migrações `20261021200000_super_admin.sql`, `20261021210000_super_admin_poder_total.sql` e
+`20261021220000_acesso_sem_email.sql` (esta última vale para o primeiro acesso sem e-mail):
 
 ```sql
 update public.profiles set papel = 'super_admin' where email = '...';

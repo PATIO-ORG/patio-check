@@ -108,10 +108,10 @@ async function lerJson(request: Request): Promise<Record<string, unknown>> {
   throw new ErroHttp(400, 'Corpo da requisição inválido.')
 }
 
-function enderecoDoApp(request: Request): string {
-  const configurado = process.env.APP_URL?.trim()
-  if (configurado) return configurado.replace(/\/+$/, '')
-  return request.headers.get('origin') ?? new URL(request.url).origin
+// Senha aleatória descartável: a pessoa entra só com o e-mail no primeiro acesso e
+// cria a própria senha. Ninguém (nem o Líder) chega a ver esta aqui.
+function senhaAleatoria(): string {
+  return `${crypto.randomUUID()}${crypto.randomUUID()}`
 }
 
 async function tratar(request: Request, acao: (admin: SupabaseClient, ator: Ator) => Promise<Response>) {
@@ -126,21 +126,15 @@ async function tratar(request: Request, acao: (admin: SupabaseClient, ator: Ator
   }
 }
 
-// Lista todos os perfis, indicando quem ainda não aceitou o convite.
+// Lista os perfis (exceto Super Admin), indicando quem ainda precisa criar a senha.
 export function GET(request: Request) {
   return tratar(request, async (admin, ator) => {
     const { data: perfis, error } = await admin
       .from('profiles')
-      .select('id, nome, email, papel, ativo')
+      .select('id, nome, email, papel, ativo, precisa_senha')
       .neq('papel', 'super_admin') // Super Admin é invisível na lista de colaboradores
       .order('nome', { ascending: true })
     if (error) throw new ErroHttp(500, 'Não foi possível listar os colaboradores.')
-
-    const { data: contas, error: erroContas } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 })
-    if (erroContas) throw new ErroHttp(500, 'Não foi possível listar os colaboradores.')
-    const ultimoAcesso = new Map<string, string | null>(
-      contas.users.map((u) => [u.id, u.last_sign_in_at ?? null]),
-    )
 
     return resposta({
       meuPapel: ator.papel,
@@ -150,14 +144,15 @@ export function GET(request: Request) {
         email: p.email,
         papel: p.papel,
         ativo: p.ativo,
-        convitePendente: !ultimoAcesso.get(p.id),
+        aguardandoSenha: Boolean(p.precisa_senha),
         gerenciavel: p.id !== ator.id && podeGerenciar(ator.papel, p.papel),
       })),
     })
   })
 }
 
-// Cadastra um Fiscal ou Analista e envia o convite por e-mail.
+// Cadastra um colaborador SEM enviar e-mail: a conta nasce marcada para primeiro
+// acesso. A pessoa digita o e-mail na tela de login, entra sem senha e cria a dela.
 export function POST(request: Request) {
   return tratar(request, async (admin, ator) => {
     const corpo = await lerJson(request)
@@ -182,27 +177,22 @@ export function POST(request: Request) {
     if (erroBusca) throw new ErroHttp(500, 'Não foi possível verificar o e-mail informado.')
     if (existente) throw new ErroHttp(409, 'Já existe um colaborador com este e-mail.')
 
-    const { data: convite, error: erroConvite } = await admin.auth.admin.inviteUserByEmail(email, {
-      data: { nome },
-      redirectTo: `${enderecoDoApp(request)}/definir-senha`,
+    const { data: convite, error: erroConvite } = await admin.auth.admin.createUser({
+      email,
+      password: senhaAleatoria(),
+      email_confirm: true,
+      user_metadata: { nome },
     })
     if (erroConvite || !convite.user) {
       const jaExiste = erroConvite?.code === 'email_exists' || /already.*registered/i.test(erroConvite?.message ?? '')
       if (jaExiste) throw new ErroHttp(409, 'Já existe uma conta com este e-mail.')
-      const limite = erroConvite?.code === 'over_email_send_rate_limit' || /rate limit/i.test(erroConvite?.message ?? '')
-      if (limite) {
-        throw new ErroHttp(
-          429,
-          'Limite de e-mails do Supabase atingido. Aguarde cerca de 1 hora ou configure um SMTP próprio no Supabase (Authentication → Emails → SMTP Settings).',
-        )
-      }
-      throw new ErroHttp(502, `Não foi possível enviar o convite: ${erroConvite?.message ?? 'erro desconhecido'}`)
+      throw new ErroHttp(502, `Não foi possível cadastrar: ${erroConvite?.message ?? 'erro desconhecido'}`)
     }
 
     // O banco cria o perfil como "fiscal" ao nascer a conta; aqui ajustamos o papel.
     const { data: atualizados, error: erroPapel } = await admin
       .from('profiles')
-      .update({ papel, nome })
+      .update({ papel, nome, precisa_senha: true })
       .eq('id', convite.user.id)
       .select('id')
     if (erroPapel || !atualizados || atualizados.length !== 1) {
@@ -304,6 +294,37 @@ export function DELETE(request: Request) {
 
     const { error: erroExclusao } = await admin.auth.admin.deleteUser(id)
     if (erroExclusao) throw new ErroHttp(502, 'Não foi possível excluir a conta. Tente novamente.')
+    return resposta({ id })
+  })
+}
+
+// Redefine a senha: a conta volta ao estado de primeiro acesso. A senha antiga deixa de
+// valer; a pessoa digita só o e-mail na tela de login e cria uma nova.
+export function PUT(request: Request) {
+  return tratar(request, async (admin, ator) => {
+    const corpo = await lerJson(request)
+    const id = typeof corpo.id === 'string' ? corpo.id : ''
+    if (!UUID_VALIDO.test(id)) throw new ErroHttp(400, 'Requisição inválida.')
+    if (id === ator.id) throw new ErroHttp(400, 'Você não pode redefinir a própria senha por aqui.')
+
+    const { data: alvo, error: erroAlvo } = await admin
+      .from('profiles')
+      .select('id, papel, ativo')
+      .eq('id', id)
+      .maybeSingle()
+    if (erroAlvo) throw new ErroHttp(500, 'Não foi possível localizar o colaborador.')
+    if (!alvo) throw new ErroHttp(404, 'Colaborador não encontrado.')
+    if (!podeGerenciar(ator.papel, alvo.papel)) {
+      throw new ErroHttp(403, 'Você não tem permissão para redefinir a senha desta conta.')
+    }
+    if (!alvo.ativo) throw new ErroHttp(409, 'Reative o colaborador antes de redefinir a senha.')
+
+    const { error: erroSenha } = await admin.auth.admin.updateUserById(id, { password: senhaAleatoria() })
+    if (erroSenha) throw new ErroHttp(502, 'Não foi possível invalidar a senha atual. Tente novamente.')
+    const { data, error } = await admin.from('profiles').update({ precisa_senha: true }).eq('id', id).select('id')
+    if (error || !data || data.length !== 1) {
+      throw new ErroHttp(500, 'A senha antiga foi invalidada, mas não foi possível concluir. Tente redefinir de novo.')
+    }
     return resposta({ id })
   })
 }

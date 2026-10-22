@@ -12,6 +12,7 @@ interface Sessao {
   carregando: boolean
   erro: string
   entrar: (identificador: string, senha?: string) => Promise<void>
+  entrarSemSenha: (email: string) => Promise<void>
   sair: () => void
 }
 
@@ -20,6 +21,7 @@ const Ctx = createContext<Sessao>({
   carregando: true,
   erro: '',
   entrar: async () => {},
+  entrarSemSenha: async () => {},
   sair: () => {},
 })
 
@@ -51,7 +53,7 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
       try {
         const resultado = await supabase!
           .from('profiles')
-          .select('id, nome, email, papel, ativo')
+          .select('id, nome, email, papel, ativo, precisa_senha')
           .eq('id', userId)
           .maybeSingle()
         data = resultado.data
@@ -80,6 +82,7 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
           email: data.email,
           papel: data.papel,
           ativo: data.ativo,
+          precisaSenha: data.precisa_senha,
         })
       }
       setCarregando(false)
@@ -137,6 +140,31 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
             if (erroLogin) setErro(`Não foi possível entrar: ${erroLogin.message}`)
           } catch (error) {
             setErro(`Não foi possível entrar: ${error instanceof Error ? error.message : String(error)}`)
+          }
+        },
+        // Primeiro acesso / senha redefinida: o servidor confere se a conta está liberada
+        // e devolve um token de uso único (sem enviar e-mail) que abre a sessão.
+        entrarSemSenha: async (emailInformado) => {
+          setErro('')
+          if (!supabase) {
+            setErro('Autenticação não configurada. Verifique as variáveis do Supabase.')
+            return
+          }
+          try {
+            const resposta = await fetch('/api/entrar-sem-senha', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: emailInformado }),
+            })
+            const json = (await resposta.json().catch(() => null)) as { token_hash?: string; erro?: string } | null
+            if (!resposta.ok || !json?.token_hash) {
+              setErro(json?.erro ?? 'Não foi possível entrar. Tente de novo.')
+              return
+            }
+            const { error: erroToken } = await supabase.auth.verifyOtp({ token_hash: json.token_hash, type: 'magiclink' })
+            if (erroToken) setErro(`Não foi possível entrar: ${erroToken.message}`)
+          } catch {
+            setErro('Sem conexão com o servidor. Verifique a internet e tente de novo.')
           }
         },
         sair: () => {

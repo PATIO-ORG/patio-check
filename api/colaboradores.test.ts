@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { DELETE, GET, PATCH, POST } from './colaboradores.ts'
+import { DELETE, GET, PATCH, POST, PUT } from './colaboradores.ts'
 
 // A função de servidor usa o cliente administrador do Supabase. Aqui ele é trocado
 // por uma versão em memória, para testar as regras de autorização sem rede.
@@ -14,6 +14,7 @@ interface Perfil {
   email: string
   papel: string
   ativo: boolean
+  precisa_senha?: boolean
 }
 
 const ID = {
@@ -29,7 +30,8 @@ const ID = {
 interface Estado {
   perfis: Perfil[]
   tokens: Record<string, string>
-  convites: { email: string; opcoes: { data: { nome: string }; redirectTo: string } }[]
+  convites: { email: string; nome: string; confirmado: boolean }[]
+  senhasTrocadas: string[]
   banimentos: { id: string; ban_duration: string }[]
   removidos: string[]
   falhaPapel: boolean
@@ -116,20 +118,11 @@ function criarAdminFalso(e: Estado) {
           : { data: { user: null }, error: { message: 'jwt inválido' } }
       },
       admin: {
-        listUsers: async () => ({
-          data: {
-            users: e.perfis.map((p) => ({
-              id: p.id,
-              last_sign_in_at: p.id === ID.analista ? null : '2026-10-20T10:00:00Z',
-            })),
-          },
-          error: null,
-        }),
-        inviteUserByEmail: async (email: string, opcoes: { data: { nome: string }; redirectTo: string }) => {
+        createUser: async (dados: { email: string; password: string; email_confirm: boolean; user_metadata: { nome: string } }) => {
           if (e.emailJaExiste) return { data: { user: null }, error: { code: 'email_exists', message: 'exists' } }
-          e.convites.push({ email, opcoes })
+          e.convites.push({ email: dados.email, nome: dados.user_metadata.nome, confirmado: dados.email_confirm })
           // O gatilho do banco cria o perfil como fiscal.
-          e.perfis.push({ id: ID.novo, nome: opcoes.data.nome, email, papel: 'fiscal', ativo: true })
+          e.perfis.push({ id: ID.novo, nome: dados.user_metadata.nome, email: dados.email, papel: 'fiscal', ativo: true })
           return { data: { user: { id: ID.novo } }, error: null }
         },
         deleteUser: async (id: string) => {
@@ -137,9 +130,13 @@ function criarAdminFalso(e: Estado) {
           e.perfis = e.perfis.filter((p) => p.id !== id)
           return { error: null }
         },
-        updateUserById: async (id: string, atributos: { ban_duration: string }) => {
+        updateUserById: async (id: string, atributos: { ban_duration?: string; password?: string }) => {
+          if (atributos.password) {
+            e.senhasTrocadas.push(id)
+            return { error: null }
+          }
           if (e.falhaBanimento) return { error: { message: 'falha simulada' } }
-          e.banimentos.push({ id, ban_duration: atributos.ban_duration })
+          e.banimentos.push({ id, ban_duration: atributos.ban_duration as string })
           return { error: null }
         },
       },
@@ -172,7 +169,7 @@ beforeEach(() => {
       { id: ID.lider, nome: 'Lia Líder', email: 'lia@empresa.com', papel: 'lider', ativo: true },
       { id: ID.outroLider, nome: 'Leo Líder', email: 'leo@empresa.com', papel: 'lider', ativo: true },
       { id: ID.fiscal, nome: 'Fábio Fiscal', email: 'fabio@empresa.com', papel: 'fiscal', ativo: true },
-      { id: ID.analista, nome: 'Ana Analista', email: 'ana@empresa.com', papel: 'analista', ativo: true },
+      { id: ID.analista, nome: 'Ana Analista', email: 'ana@empresa.com', papel: 'analista', ativo: true, precisa_senha: true },
       { id: ID.super, nome: 'Sol Super', email: 'sol@empresa.com', papel: 'super_admin', ativo: true },
       { id: ID.outroSuper, nome: 'Sam Super', email: 'sam@empresa.com', papel: 'super_admin', ativo: true },
     ],
@@ -183,6 +180,7 @@ beforeEach(() => {
       'token-super': ID.super,
     },
     convites: [],
+    senhasTrocadas: [],
     banimentos: [],
     removidos: [],
     falhaPapel: false,
@@ -225,16 +223,16 @@ describe('autorização', () => {
 })
 
 describe('GET: listagem', () => {
-  it('lista a equipe e marca convites pendentes e contas gerenciáveis', async () => {
+  it('lista a equipe e marca quem aguarda o primeiro acesso e contas gerenciáveis', async () => {
     const r = await chamar(GET, { token: 'token-lider' })
     expect(r.status).toBe(200)
     const { colaboradores } = (await r.json()) as {
-      colaboradores: { id: string; convitePendente: boolean; gerenciavel: boolean }[]
+      colaboradores: { id: string; aguardandoSenha: boolean; gerenciavel: boolean }[]
     }
     expect(colaboradores).toHaveLength(4) // Super Admins ficam fora da lista
     expect(colaboradores.find((c) => c.id === ID.super)).toBe(undefined)
     const ana = colaboradores.find((c) => c.id === ID.analista)
-    expect(ana?.convitePendente).toBe(true)
+    expect(ana?.aguardandoSenha).toBe(true)
     expect(ana?.gerenciavel).toBe(true)
     expect(colaboradores.find((c) => c.id === ID.outroLider)?.gerenciavel).toBe(true)
     expect(colaboradores.find((c) => c.id === ID.lider)?.gerenciavel).toBe(false) // a si mesmo, não
@@ -250,7 +248,7 @@ describe('GET: listagem', () => {
 })
 
 describe('POST: cadastrar colaborador', () => {
-  it('cadastra um analista, envia o convite e ajusta o papel', async () => {
+  it('cadastra um analista sem e-mail, já marcado para primeiro acesso', async () => {
     const r = await chamar(POST, {
       token: 'token-lider',
       corpo: { nome: ' Nova Pessoa ', email: 'Nova@Empresa.com', papel: 'analista' },
@@ -258,9 +256,10 @@ describe('POST: cadastrar colaborador', () => {
     expect(r.status).toBe(201)
     expect(estado.convites).toHaveLength(1)
     expect(estado.convites[0].email).toBe('nova@empresa.com')
-    expect(estado.convites[0].opcoes.redirectTo).toBe('https://patio.exemplo.test/definir-senha')
+    expect(estado.convites[0].confirmado).toBe(true)
     const perfil = estado.perfis.find((p) => p.id === ID.novo)
     expect(perfil?.papel).toBe('analista')
+    expect(perfil?.precisa_senha).toBe(true)
     expect(perfil?.nome).toBe('Nova Pessoa')
   })
 
@@ -446,5 +445,30 @@ describe('DELETE: excluir colaborador', () => {
     expect(
       (await chamar(DELETE, { token: 'token-lider', corpo: { id: '00000000-0000-4000-8000-0000000000aa' } })).status,
     ).toBe(404)
+  })
+})
+
+describe('PUT: redefinir senha', () => {
+  it('líder redefine a senha de um colaborador ativo', async () => {
+    const r = await chamar(PUT, { token: 'token-lider', corpo: { id: ID.fiscal } })
+    expect(r.status).toBe(200)
+    expect(estado.senhasTrocadas).toEqual([ID.fiscal])
+    expect(estado.perfis.find((p) => p.id === ID.fiscal)?.precisa_senha).toBe(true)
+  })
+
+  it('super admin redefine a senha de um líder', async () => {
+    expect((await chamar(PUT, { token: 'token-super', corpo: { id: ID.lider } })).status).toBe(200)
+  })
+
+  it('não redefine a própria senha, nem a de Super Admin, nem de desativado', async () => {
+    expect((await chamar(PUT, { token: 'token-lider', corpo: { id: ID.lider } })).status).toBe(400)
+    expect((await chamar(PUT, { token: 'token-lider', corpo: { id: ID.super } })).status).toBe(403)
+    estado.perfis[2].ativo = false
+    expect((await chamar(PUT, { token: 'token-lider', corpo: { id: ID.fiscal } })).status).toBe(409)
+    expect(estado.senhasTrocadas).toEqual([])
+  })
+
+  it('fiscal e analista não redefinem senha de ninguém', async () => {
+    expect((await chamar(PUT, { token: 'token-fiscal', corpo: { id: ID.analista } })).status).toBe(403)
   })
 })

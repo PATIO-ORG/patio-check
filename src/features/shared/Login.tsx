@@ -13,7 +13,7 @@ const DESCRICAO: Record<string, string> = {
 }
 
 export function Login() {
-  const { entrar, erro } = useSessao()
+  const { entrar, entrarSemSenha, erro } = useSessao()
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
 
@@ -77,7 +77,7 @@ export function Login() {
             className="grid max-w-md gap-4 rounded-lg border border-asfalto-3 bg-asfalto-2 p-5"
             onSubmit={(event) => {
               event.preventDefault()
-              void entrar(email, senha)
+              void (senha ? entrar(email, senha) : entrarSemSenha(email))
             }}
           >
             <label className="grid gap-1.5 text-sm">
@@ -96,12 +96,15 @@ export function Login() {
               <input
                 type="password"
                 autoComplete="current-password"
-                required
+                placeholder="Deixe em branco no primeiro acesso"
                 value={senha}
                 onChange={(event) => setSenha(event.target.value)}
                 className="rounded-chip border border-asfalto-3 bg-asfalto px-3 py-2.5 text-concreto"
               />
             </label>
+            <p className="text-[13px] text-brita-2">
+              Primeiro acesso, ou o Líder redefiniu sua senha? Digite só o e-mail e entre: você criará uma senha em seguida.
+            </p>
             {erro && <p role="alert" className="text-sm font-semibold text-demarcacao">{erro}</p>}
             <button
               type="submit"

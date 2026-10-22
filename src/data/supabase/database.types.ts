@@ -23,6 +23,7 @@ export interface Database {
         email: string
         papel: Papel
         ativo: boolean
+        precisa_senha: boolean
         criado_em: string
       }>
       motoristas: Table<{
